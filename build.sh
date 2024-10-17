@@ -800,7 +800,7 @@ if [[ -n "${LLVM}" ]]; then
   # initramfs generation below.
   HOSTCC=clang
   HOSTCXX=clang++
-  CC=clang
+  CC="ccache clang"
   LD=ld.lld
   AR=llvm-ar
   NM=llvm-nm
