@@ -704,7 +704,10 @@ SIGN_ALGO=sha512
 
 # Save environment parameters before being overwritten by sourcing
 # BUILD_CONFIG.
-CC_ARG="${CC}"
+CC_ARG="${
+
+
+}"
 
 source "${ROOT_DIR}/build/_setup_env.sh"
 
@@ -800,7 +803,7 @@ if [[ -n "${LLVM}" ]]; then
   # initramfs generation below.
   HOSTCC=clang
   HOSTCXX=clang++
-  CC="ccache clang"
+  CC=clang
   LD=ld.lld
   AR=llvm-ar
   NM=llvm-nm
