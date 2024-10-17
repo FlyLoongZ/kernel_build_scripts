@@ -66,12 +66,6 @@ jobs:
           cp android_build/out/android12-5.10/dist/Image AnyKernel3/Image
           cd AnyKernel3
           zip -r9 "Anykernel3-${{ steps.set-env-kernel-version.outputs.KERNEL_VERSION }}.zip" * -x .git README.md
-        
-      - name: Upload AnyKernel3
-        uses: actions/upload-artifact@v4
-        with:
-          name: "Anykernel3-${{ steps.set-env-kernel-version.outputs.KERNEL_VERSION }}.zip"
-          path: "Anykernel3/Anykernel3-${{ steps.set-env-kernel-version.outputs.KERNEL_VERSION }}.zip"
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
