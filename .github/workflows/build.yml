@@ -1,0 +1,84 @@
+name: Build Android gki Kernel
+
+on:
+  workflow_dispatch:
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  build-kernel:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup CCache
+        uses: hendrikmuhs/ccache-action@v1.2
+        with:
+          max-size: 5G          
+        
+      - name: Set build Date
+        id: set-env-date
+        run: echo "BUILDDATE=$(date +'%Y%m%d')" >> $GITHUB_OUTPUT
+      
+      - name: Download prebuilt toolchain and Clone kernel source
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y git git-lfs zip
+          
+          mkdir -p ~/.bin
+          PATH="${HOME}/.bin:${PATH}"
+          curl https://storage.googleapis.com/git-repo-downloads/repo > ~/.bin/repo
+          chmod a+rx ~/.bin/repo
+
+          mkdir android_build
+          cd android_build
+          ~/.bin/repo init -u https://github.com/FlyLoongZ/kernel_build_scripts -b repo_manifest --git-lfs
+          ~/.bin/repo sync
+
+      - name: Add KernelSU
+        run: | 
+          cd android_build/common
+          curl -LSs "https://raw.githubusercontent.com/tiann/KernelSU/main/kernel/setup.sh" | bash -
+          
+      - name: Build Kernel
+        run: |
+          cd android_build
+          mkdir .bin
+          cd .bin
+          ln -s /usr/bin/ccache clang
+          
+          cd ..
+          LTO=thin CCACHE_LOCAL_PATH=.bin BUILD_CONFIG=common/build.config.gki.aarch64 build/build.sh
+          
+      - name: Read Kernel Version
+        id: set-env-kernel-version
+        run: echo "KERNEL_VERSION=$(basename $(find ./android_build/out/android12-5.10/staging/lib/modules/ -name "*android12*"))" >> $GITHUB_OUTPUT
+
+      - name: Upload Image
+        uses: actions/upload-artifact@v4
+        with:
+          name: "Image-${{ steps.set-env-kernel-version.outputs.KERNEL_VERSION }}"
+          path: android_build/out/android12-5.10/dist/Image
+      
+      - name: Package Kerenl
+        run: |
+          git clone --depth=1 https://github.com/FlyLoongZ/AnyKernel3
+          cp android_build/out/android12-5.10/dist/Image AnyKernel3/Image
+          cd AnyKernel3
+          zip -r9 "Anykernel3-${{ steps.set-env-kernel-version.outputs.KERNEL_VERSION }}.zip" * -x .git README.md
+        
+      - name: Upload AnyKernel3
+        uses: actions/upload-artifact@v4
+        with:
+          name: "Anykernel3-${{ steps.set-env-kernel-version.outputs.KERNEL_VERSION }}.zip"
+          path: "Anykernel3/Anykernel3-${{ steps.set-env-kernel-version.outputs.KERNEL_VERSION }}.zip"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.set-env-date.outputs.BUILDDATE }}.${{ github.run_number }}
+          files: "AnyKernel3/Anykernel3-${{ steps.set-env-kernel-version.outputs.KERNEL_VERSION }}.zip"
+          generate_release_notes: true
+
+      
+       
