@@ -89,8 +89,8 @@ jobs:
           cd android_build/out/android12-5.10/dist
           mkdir apatch
           cd apatch
-          wget https://github.com/bmax121/KernelPatch/releases/latest/download/kptools-linux
-          wget https://github.com/bmax121/KernelPatch/releases/latest/download/kpimg-android
+          wget -q https://github.com/bmax121/KernelPatch/releases/latest/download/kptools-linux
+          wget -q https://github.com/bmax121/KernelPatch/releases/latest/download/kpimg-android
           mv ../Image ../Image-old
           chmod +x kptools-linux
           ./kptools-linux -p --image ../Image-old --skey "$ap_key" --kpimg kpimg-android --out ../Image
