@@ -21,7 +21,7 @@ on:
       BUILD_NUMBER:
         description: 'ci.android.com build num'
         required: true
-        type: environment
+        type: string
         
 defaults:
   run:
