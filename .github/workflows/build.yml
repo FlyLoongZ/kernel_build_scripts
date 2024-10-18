@@ -84,6 +84,7 @@ jobs:
           wget https://github.com/bmax121/KernelPatch/releases/latest/download/kptools-linux
           wget https://github.com/bmax121/KernelPatch/releases/latest/download/kpimg-android
           mv ../Image ../Image-old
+          chmod +x kptools-linux
           ./kptools-linux -p --image ../Image-old --skey "$ap_key" --kpimg kpimg-android --out ../Image
           
       - name: Read Kernel Version
