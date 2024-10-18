@@ -97,6 +97,6 @@ jobs:
           tag_name: v${{ steps.set-env-date.outputs.BUILDDATE }}.${{ github.run_number }}
           files: "AnyKernel3/Anykernel3-${{ steps.set-env-kernel-version.outputs.KERNEL_VERSION }}.zip"
           generate_release_notes: true
-          body: "KernelSU ${{ inputs.ksu_patch && ✔️ }} ${{ !inputs.ksu_patch && ❌ }} Apatch ${{ inputs.ap_patch && ✔️ }} ${{ inputs.ap_patch && ❌ }} "
+          body: ${{ inputs.ksu_patch && "KernelSU ✔️" }}${{ !inputs.ksu_patch && "KernelSU❌" }} ${{ inputs.ap_patch && "Apatch ✔️" }}${{ !inputs.ap_patch && "Apatch ❌" }}
       
        
