@@ -4,17 +4,17 @@ on:
   workflow_dispatch:
     inputs: 
       ksu_patch:
-        description: 'Start KernelSU latest patch'
+        description: 'Add KernelSU latest patch'
         required: false
         type: boolean
 
       ap_patch:
-        description: 'Start Apatch latest patch'
+        description: 'Add Apatch latest patch'
         required: false
         type: boolean
 
       ccache_set:
-        description: 'Add CCache'
+        description: 'Enable CCache'
         required: false
         type: boolean
         
@@ -70,7 +70,7 @@ jobs:
           ccache_set: ${{ inputs.ccache_set }}
         run: |
           cd android_build
-          $([[ ${{ enc.ccache_set }} == 'true' ]] && export 'CCACHE_LOCAL_PATH=.bin' || echo 'No add CCache')"
+          $([[ ${{ env.ccache_set }} == 'true' ]] && export 'CCACHE_LOCAL_PATH=.bin' || echo 'No add CCache')"
           LTO=thin BUILD_CONFIG=common/build.config.gki.aarch64 build/build.sh
 
       - name: Add Apatch
