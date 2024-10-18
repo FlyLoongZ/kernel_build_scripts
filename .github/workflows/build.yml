@@ -90,10 +90,16 @@ jobs:
           cp android_build/out/android12-5.10/dist/Image AnyKernel3/Image
           cd AnyKernel3
           zip -r9 "Anykernel3-${{ steps.set-env-kernel-version.outputs.KERNEL_VERSION }}.zip" * -x .git README.md
+      
       - name: Create Release
-        run: echo -e "${{ inputs.ksu_patch && 'KernelSU ✔️' }}${{ !inputs.ksu_patch && 'KernelSU ❌' }}\n${{ inputs.ap_patch && 'Apatch ✔️' }}${{ !inputs.ap_patch && 'Apatch ❌' }}\nKernel Version: ${{ steps.set-env-kernel-version.outputs.KERNEL_VERSION }}"
-          
-
+        env: 
+          ksu_patch: ${{ inputs.ksu_patch }}
+          ap_patch: ${{ inputs.ap_patch }}
+        run: |
+          echo "KernelSU: ${{ env.ksu_patch == 'true' && '✔️' || '❌' }}" >> release.txt
+          echo "Apacth: ${{ env.ap_patch == 'true' && '✔️' || '❌' }}" >> release.txt
+          echo "Kernel Version: ${{ steps.set-env-kernel-version.outputs.KERNEL_VERSION }}" >> release.txt
+      
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
