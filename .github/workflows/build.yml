@@ -17,6 +17,11 @@ on:
         description: 'Enable CCache'
         required: false
         type: boolean
+
+      BUILD_NUMBER:
+        description: 'ci.android.com build num'
+        required: true
+        type: environment
         
 defaults:
   run:
@@ -71,7 +76,10 @@ jobs:
         run: |
           cd android_build
           [[ ${{ env.ccache_set }} == true ]] && export 'CCACHE_LOCAL_PATH=.bin' || echo 'No add CCache'
-          LTO=thin BUILD_CONFIG=common/build.config.gki.aarch64 build/build.sh
+          export LTO=thin 
+          export BUILD_CONFIG=common/build.config.gki.aarch64
+          export BUILD_NUMBER=${{ inputs.BUILD_NUMBER }}
+          build/build.sh
 
       - name: Add Apatch
         if: ${{ inputs.ap_patch }}
@@ -118,6 +126,5 @@ jobs:
         with:
           tag_name: v${{ steps.set-env-date.outputs.BUILDDATE }}.${{ github.run_number }}
           files: "AnyKernel3/Anykernel3-${{ steps.set-env-kernel-version.outputs.KERNEL_VERSION }}.zip"
-          generate_release_notes: true
           body_path: release.txt
        
