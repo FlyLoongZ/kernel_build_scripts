@@ -27,12 +27,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Setup CCache
+        if: ${{ inputs.ccache_set }}
         uses: hendrikmuhs/ccache-action@v1.2
         with:
           max-size: 5G          
         
       - name: Set build Date
-        if: ${{ inputs.ccache_set }}
         id: set-env-date
         run: echo "BUILDDATE=$(date +'%Y%m%d')" >> $GITHUB_OUTPUT
       
