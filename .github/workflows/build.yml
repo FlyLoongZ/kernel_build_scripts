@@ -70,7 +70,7 @@ jobs:
           ccache_set: ${{ inputs.ccache_set }}
         run: |
           cd android_build
-          $([[ ${{ env.ccache_set }} == 'true' ]] && export 'CCACHE_LOCAL_PATH=.bin' || echo 'No add CCache')"
+          [[ ${{ env.ccache_set }} == true ]] && export 'CCACHE_LOCAL_PATH=.bin' || echo 'No add CCache'
           LTO=thin BUILD_CONFIG=common/build.config.gki.aarch64 build/build.sh
 
       - name: Add Apatch
@@ -109,8 +109,8 @@ jobs:
           ksu_patch: ${{ inputs.ksu_patch }}
           ap_patch: ${{ inputs.ap_patch }}
         run: |
-          echo "KernelSU: $([[ ${{ env.ksu_patch }} == 'true' ]] && echo '✔️' || echo '❌')" >> release.txt
-          echo "Apatch: $([[ ${{ env.ap_patch }} == 'true' ]] && echo '✔️' || echo '❌')" >> release.txt
+          echo "KernelSU: $([[ ${{ env.ksu_patch }} == true ]] && echo '✔️' || echo '❌')" >> release.txt
+          echo "Apatch: $([[ ${{ env.ap_patch }} == true ]] && echo '✔️' || echo '❌')" >> release.txt
           echo "Kernel Version: ${{ steps.set-env-kernel-version.outputs.KERNEL_VERSION }}" >> release.txt
       
       - name: Create GitHub Release
