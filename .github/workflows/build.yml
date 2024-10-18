@@ -4,12 +4,12 @@ on:
   workflow_dispatch:
     inputs: 
       ksu_patch:
-        description: 'Start KernelSU patch'
+        description: 'Start KernelSU latest patch'
         required: false
         type: boolean
 
       ap_patch:
-        description: 'Start Apatch patch'
+        description: 'Start Apatch latest patch'
         required: false
         type: boolean
         
@@ -70,7 +70,7 @@ jobs:
           mkdir apatch
           cd apatch
           wget https://github.com/bmax121/KernelPatch/releases/latest/download/kptools-linux
-          wget https://github.com/bmax121/KernelPatch/releases/latest/download/kpatch-android
+          wget https://github.com/bmax121/KernelPatch/releases/latest/download/kpimg-android
           mv ../Image ../Image-old
           ./kptools-linux -p --image ../Image-old --skey "$ap_key" --kpimg kpimg-android --out ../Image
           
@@ -90,6 +90,14 @@ jobs:
           cp android_build/out/android12-5.10/dist/Image AnyKernel3/Image
           cd AnyKernel3
           zip -r9 "Anykernel3-${{ steps.set-env-kernel-version.outputs.KERNEL_VERSION }}.zip" * -x .git README.md
+      - name: Create Release
+        run: 
+          cat <<'EOF' > release.txt
+          ${{ inputs.ksu_patch && 'KernelSU ✔️' }}${{ !inputs.ksu_patch && 'KernelSU ❌' }} 
+          ${{ inputs.ap_patch && 'Apatch ✔️' }}${{ !inputs.ap_patch && 'Apatch ❌' }}
+          Kernel Version: ${{ steps.set-env-kernel-version.outputs.KERNEL_VERSION }}
+          EOF
+          
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
@@ -97,6 +105,5 @@ jobs:
           tag_name: v${{ steps.set-env-date.outputs.BUILDDATE }}.${{ github.run_number }}
           files: "AnyKernel3/Anykernel3-${{ steps.set-env-kernel-version.outputs.KERNEL_VERSION }}.zip"
           generate_release_notes: true
-          body: ${{ inputs.ksu_patch && "KernelSU ✔️" }}${{ !inputs.ksu_patch && "KernelSU❌" }} ${{ inputs.ap_patch && "Apatch ✔️" }}${{ !inputs.ap_patch && "Apatch ❌" }}
-      
+          body_path: release.txt
        
