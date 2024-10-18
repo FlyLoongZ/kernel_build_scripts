@@ -2,7 +2,17 @@ name: Build Android gki Kernel
 
 on:
   workflow_dispatch:
+    inputs: 
+      ksu_patch:
+        description: 'Start KernelSU patch'
+        required: false
+        type: boolean
 
+      ap_patch:
+        description: 'Start Apatch patch'
+        required: false
+        type: boolean
+        
 defaults:
   run:
     shell: bash
@@ -36,6 +46,7 @@ jobs:
           ~/.bin/repo sync
 
       - name: Add KernelSU
+        if: ${{ inputs.ksu_patch }}
         run: | 
           cd android_build/common
           curl -LSs "https://raw.githubusercontent.com/tiann/KernelSU/main/kernel/setup.sh" | bash -
@@ -49,6 +60,19 @@ jobs:
           
           cd ..
           LTO=thin CCACHE_LOCAL_PATH=.bin BUILD_CONFIG=common/build.config.gki.aarch64 build/build.sh
+
+      - name: Add Apatch
+        if: ${{ inputs.ap_patch }}
+        env:
+          ap_key: ${{ secrets.Apatch_Key }}
+        run: |
+          cd android_build/out/android12-5.10/dist
+          mkdir apatch
+          cd apatch
+          wget https://github.com/bmax121/KernelPatch/releases/latest/download/kptools-linux
+          wget https://github.com/bmax121/KernelPatch/releases/latest/download/kpatch-android
+          mv ../Image ../Image-old
+          ./kptools-linux -p --image ../Image-old --skey "$ap_key" --kpimg kpimg-android --out ../Image
           
       - name: Read Kernel Version
         id: set-env-kernel-version
@@ -73,6 +97,6 @@ jobs:
           tag_name: v${{ steps.set-env-date.outputs.BUILDDATE }}.${{ github.run_number }}
           files: "AnyKernel3/Anykernel3-${{ steps.set-env-kernel-version.outputs.KERNEL_VERSION }}.zip"
           generate_release_notes: true
-
+          body: "KernelSU ${{ inputs.ksu_patch && ✔️ }} ${{ !inputs.ksu_patch && ❌ }} Apatch ${{ inputs.ap_patch && ✔️ }} ${{ inputs.ap_patch && ❌ }} "
       
        
