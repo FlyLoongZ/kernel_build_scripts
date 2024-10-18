@@ -12,6 +12,11 @@ on:
         description: 'Start Apatch latest patch'
         required: false
         type: boolean
+
+      ccache_set:
+        description: 'Add CCache build'
+        required: false
+        type: boolean
         
 defaults:
   run:
@@ -27,6 +32,7 @@ jobs:
           max-size: 5G          
         
       - name: Set build Date
+        if: ${{ inputs.ccache_set }}
         id: set-env-date
         run: echo "BUILDDATE=$(date +'%Y%m%d')" >> $GITHUB_OUTPUT
       
@@ -50,16 +56,22 @@ jobs:
         run: | 
           cd android_build/common
           curl -LSs "https://raw.githubusercontent.com/tiann/KernelSU/main/kernel/setup.sh" | bash -
-          
-      - name: Build Kernel
+
+      - name: Set CCache env
+        if: ${{ inputs.ccache_set }}
         run: |
           cd android_build
           mkdir .bin
           cd .bin
           ln -s /usr/bin/ccache clang
           
-          cd ..
-          LTO=thin CCACHE_LOCAL_PATH=.bin BUILD_CONFIG=common/build.config.gki.aarch64 build/build.sh
+      - name: Build Kernel
+        env: 
+          ccache_set: ${{ inputs.ccache_set }}
+        run: |
+          cd android_build
+          ${{ env.ccache_set == 'true' && 'export CCACHE_LOCAL_PATH=.bin' }}
+          LTO=thin BUILD_CONFIG=common/build.config.gki.aarch64 build/build.sh
 
       - name: Add Apatch
         if: ${{ inputs.ap_patch }}
