@@ -81,9 +81,11 @@ jobs:
           export LTO=thin 
           export BUILD_CONFIG=common/build.config.gki.aarch64
           export BUILD_NUMBER=${{ inputs.BUILD_NUMBER }}
-          sed -i '1d' common/arch/arm64/configs/gki_defconfig
+
           cd common
           git tag -a v5.10.226 ceb091e
+          sed -i '1d' arch/arm64/configs/gki_defconfig
+          sed -i '116,121d' scripts/setlocalversion
           cd ..
           build/build.sh
 
