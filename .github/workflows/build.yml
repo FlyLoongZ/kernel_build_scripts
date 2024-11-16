@@ -55,6 +55,8 @@ jobs:
           cd android_build
           ~/.bin/repo init -u https://github.com/FlyLoongZ/kernel_build_scripts -b repo_manifest --git-lfs
           ~/.bin/repo sync
+          sed -i '1d' common/arch/arm64/configs/gki_defconfig
+
 
       - name: Add KernelSU
         if: ${{ inputs.ksu_patch }}
@@ -119,15 +121,24 @@ jobs:
           ksu_patch: ${{ inputs.ksu_patch }}
           ap_patch: ${{ inputs.ap_patch }}
         run: |
-          echo "KernelSU: $([[ ${{ env.ksu_patch }} == true ]] && echo '✔️' || echo '❌')" >> release.txt
-          echo "KernelSU Version: $([[ ${{ env.ksu_patch }} == true ]] && echo $KernelSU_version || echo "none" )" >> release.txt
-          echo "Apatch: $([[ ${{ env.ap_patch }} == true ]] && echo '✔️' || echo '❌')" >> release.txt
-          echo "Kernel Version: ${{ steps.set-env-kernel-version.outputs.KERNEL_VERSION }}" >> release.txt
+          if [[ ${{ env.ksu_patch }} == true ]]; then
+            echo "KernelSU: ✔️" >> release.txt
+            echo "KernelSU Version: $KernelSU_version" >> release.txt
+          else
+            echo "KernelSU: ❌" >> release.txt
+          fi
+
+          if [[ ${{ env.ap_patch }} == true ]]; then
+            echo "Apatch: ✔️" >> release.txt
+          else
+            echo "Apatch: ❌" >> release.txt
+          fi
+
+          echo "Kernel Version: ${{ steps.set-env-kernel-version.outputs.KERNEL_VERSION }}-ab${{ inputs.BUILD_NUMBER }}" >> release.txt
       
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ steps.set-env-date.outputs.BUILDDATE }}.${{ github.run_number }}
-          files: "AnyKernel3/Anykernel3-${{ steps.set-env-kernel-version.outputs.KERNEL_VERSION }}.zip"
+          files: "AnyKernel3/Anykernel3-${{ steps.set-env-kernel-version.outputs.KERNEL_VERSION }}-ab${{ inputs.BUILD_NUMBER }}.zip"
           body_path: release.txt
-       
