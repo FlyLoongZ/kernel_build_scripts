@@ -120,7 +120,7 @@ jobs:
           git clone --depth=1 https://github.com/FlyLoongZ/AnyKernel3
           cp android_build/out/android12-5.10/dist/Image AnyKernel3/Image
           cd AnyKernel3
-          zip -r9 "Anykernel3-${{ steps.set-env-kernel-version.outputs.KERNEL_VERSION }}.zip" * -x .git README.md
+          zip -r9 "Anykernel3-${{ steps.set-env-kernel-version.outputs.KERNEL_VERSION }}-ab${{ inputs.BUILD_NUMBER }}.zip" * -x .git README.md
       
       - name: Create Release Text
         env: 
