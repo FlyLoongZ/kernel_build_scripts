@@ -61,6 +61,8 @@ jobs:
         run: | 
           cd android_build/common
           curl -LSs "https://raw.githubusercontent.com/tiann/KernelSU/main/kernel/setup.sh" | bash -
+          cd KernelSU
+          echo "KernelSU_version=$(expr 10200 + $(git rev-list --count HEAD))"  >> "$GITHUB_ENV"
 
       - name: Set CCache env
         if: ${{ inputs.ccache_set }}
@@ -118,6 +120,7 @@ jobs:
           ap_patch: ${{ inputs.ap_patch }}
         run: |
           echo "KernelSU: $([[ ${{ env.ksu_patch }} == true ]] && echo '✔️' || echo '❌')" >> release.txt
+          echo "KernelSU Version: $([[ ${{ env.ksu_patch }} == true ]] && echo $KernelSU_version || echo "none" )" >> release.txt
           echo "Apatch: $([[ ${{ env.ap_patch }} == true ]] && echo '✔️' || echo '❌')" >> release.txt
           echo "Kernel Version: ${{ steps.set-env-kernel-version.outputs.KERNEL_VERSION }}" >> release.txt
       
