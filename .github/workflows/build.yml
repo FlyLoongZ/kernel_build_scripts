@@ -112,7 +112,7 @@ jobs:
       - name: Upload Image
         uses: actions/upload-artifact@v4
         with:
-          name: "Image-${{ steps.set-env-kernel-version.outputs.KERNEL_VERSION }}"
+          name: "Image-${{ steps.set-env-kernel-version.outputs.KERNEL_VERSION }}-ab${{ inputs.BUILD_NUMBER }}"
           path: android_build/out/android12-5.10/dist/Image
       
       - name: Package Kerenl
