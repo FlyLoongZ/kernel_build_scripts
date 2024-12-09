@@ -143,9 +143,9 @@ jobs:
           fi
 
           echo "Kernel Version: ${{ steps.set-env-kernel-version.outputs.KERNEL_VERSION }}-ab${{ inputs.BUILD_NUMBER }}" >> release.txt
-          echo "Kernel Source: $(cd ~/android_build/common && git remote -v | awk '/https/ {print $2; exit}')" >> release.txt
-          echo "Kernel Source Branch: $(cd ~/android_build/common && git branch --contains HEAD -r | awk '/->/ {sub(/.*-> /, "", $0); print substr($0, index($0, "/") + 1)}')" >> release.txt
-          echo "Kernel Source Commit: $(cd ~/android_build/common && git rev-parse --short HEAD)" >> release.txt
+          echo "Kernel Source: $(cd android_build/common && git remote -v | awk '/https/ {print $2; exit}')" >> release.txt
+          echo "Kernel Source Branch: $(cd android_build/common && git branch --contains HEAD -r | awk '/->/ {sub(/.*-> /, "", $0); print substr($0, index($0, "/") + 1)}')" >> release.txt
+          echo "Kernel Source Commit: $(cd android_build/common && git rev-parse --short HEAD)" >> release.txt
       
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
