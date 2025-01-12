@@ -129,7 +129,7 @@ jobs:
       - name: Build Kernel
         env: 
           ccache_set: ${{ inputs.ccache_set }}
-          choice_kernel: contains(inputs.inputs.kernel_source_url, 'melt')
+          choice_kernel: ${{ inputs.inputs.kernel_source_url }}
         run: |
           if [[ ${{ env.ccache_set }} == true ]]; then
             export 'CCACHE_LOCAL_PATH=.bin'
@@ -143,10 +143,10 @@ jobs:
           echo -e ". \${ROOT_DIR}/\${KERNEL_DIR}/build.config.common\n. \${ROOT_DIR}/\${KERNEL_DIR}/build.config.aarch64\nDEFCONFIG=marble_defconfig\nPOST_DEFCONFIG_CMDS=check_defconfig" >> build.config.xiaomi
           cd ..
 
-          if [[ ${{ env.choice_kernel }} == true ]]; then
-            LTO=thin BUILD_CONFIG=common/build.config.xiaomi BUILD_NUMBER=${{ inputs.BUILD_NUMBER }} build/build.sh -j4
+          if [[ ${{ env.choice_kernel }} == ztc1997-5.10 ]]; then
+            LTO=thin BUILD_CONFIG=common/build.config.gki.aarch64 BUILD_NUMBER=${{ inputs.BUILD_NUMBER }} build/build.sh -j4
           else
-            LTO=thin BUILD_CONFIG=common/build.config. BUILD_NUMBER=${{ inputs.BUILD_NUMBER }} build/build.sh -j4
+            LTO=thin BUILD_CONFIG=common/build.config.xiaomi BUILD_NUMBER=${{ inputs.BUILD_NUMBER }} build/build.sh -j4
           fi
 
       - name: Add Apatch
