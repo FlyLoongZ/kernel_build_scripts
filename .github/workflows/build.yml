@@ -70,13 +70,13 @@ jobs:
           kernel_source_url: ${{ inputs.kernel_source_url }}
         run: |
           cd android_build
-          if [[ ${{ env.kernel_source_url}} == "ztc1997-5.10" ]]; then
+          if [[ ${{ env.kernel_source_url}} == ztc1997-5.10 ]]; then
             git clone --filter=tree:0 https://github.com/ztc1997/android_gki_kernel_5.10_common common
             cd common
             git tag -a v5.10.226 -m "android12-5.10" fbe645b
             sed -i '1d' arch/arm64/configs/gki_defconfig
             sed -i '116,121d' scripts/setlocalversion
-          else if [[ ${{ env.kernel_source_url}} == "melt-release" ]]; then
+          else if [[ ${{ env.kernel_source_url}} == melt-release ]]; then
             git clone --filter=tree:0 https://github.com/Pzqqt/android_kernel_xiaomi_marble common -b $(git ls-remote --sort=-version:refname --tags https://github.com/Pzqqt/android_kernel_xiaomi_marble Melt-marble-v\* | head -n 1 | awk -F'/' '{print $NF}')
             cd common
             sed -i 's/^DEFCONFIG=gki_defconfig$/DEFCONFIG=marble_defconfig/' build.config.gki
@@ -85,7 +85,7 @@ jobs:
             sed -i '/source "drivers\/staging\/kernelsu\/Kconfig"/d' drivers/staging/Kconfig
             sed -i '/obj-\$(CONFIG_KSU)[[:space:]]*+= kernelsu\//d' drivers/staging/Makefile
             rm -r drivers/staging/kernelsu
-          else if [[ ${{ env.kernel_source_url}} == "melt-latest" ]]; then
+          else if [[ ${{ env.kernel_source_url}} == melt-latest ]]; then
             git clone --filter=tree:0 https://github.com/Pzqqt/android_kernel_xiaomi_marble common
             cd common
             sed -i 's/^DEFCONFIG=gki_defconfig$/DEFCONFIG=marble_defconfig/' build.config.gki
