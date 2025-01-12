@@ -140,7 +140,7 @@ jobs:
           cd android_build/common
           git config --global user.email build-user@build-host
           git config --global user.name build-user
-          echo -e ". \${ROOT_DIR}/\${KERNEL_DIR}/build.config.common\n. \${ROOT_DIR}/\${KERNEL_DIR}/build.config.aarch64\nDEFCONFIG=marble_defconfig\nPOST_DEFCONFIG_CMDS=check_defconfig" >> build.config.xiaomi
+          echo -e ". \${ROOT_DIR}/\${KERNEL_DIR}/build.config.common\n. \${ROOT_DIR}/\${KERNEL_DIR}/build.config.aarch64\nDEFCONFIG=marble_defconfig\n" >> build.config.xiaomi
           cd ..
 
           if [[ ${{ env.choice_kernel }} == ztc1997-5.10 ]]; then
