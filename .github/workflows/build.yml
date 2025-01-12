@@ -129,7 +129,7 @@ jobs:
       - name: Build Kernel
         env: 
           ccache_set: ${{ inputs.ccache_set }}
-          choice_kernel: ${{ inputs.inputs.kernel_source_url }}
+          choice_kernel: ${{ inputs.kernel_source_url }}
         run: |
           if [[ ${{ env.ccache_set }} == true ]]; then
             export 'CCACHE_LOCAL_PATH=.bin'
