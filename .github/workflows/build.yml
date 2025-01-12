@@ -18,12 +18,15 @@ on:
         type: string
 
       ksu_patch:
-        description: 'Add KernelSU latest patch'
+        description: 'Add KernelSU patch'
         required: false
-        type: boolean
+        type: choice
+        options:
+          - release
+          - dev
 
       ap_patch:
-        description: 'Add Apatch latest patch'
+        description: 'Add Apatch release patch'
         required: false
         type: boolean
 
@@ -76,7 +79,7 @@ jobs:
             git tag -a v5.10.226 -m "android12-5.10" fbe645b
             sed -i '1d' arch/arm64/configs/gki_defconfig
             sed -i '116,121d' scripts/setlocalversion
-          else if [[ ${{ env.kernel_source_url}} == melt-release ]]; then
+          elif [[ ${{ env.kernel_source_url}} == melt-release ]]; then
             git clone --filter=tree:0 https://github.com/Pzqqt/android_kernel_xiaomi_marble common -b $(git ls-remote --sort=-version:refname --tags https://github.com/Pzqqt/android_kernel_xiaomi_marble Melt-marble-v\* | head -n 1 | awk -F'/' '{print $NF}')
             cd common
             sed -i 's/^DEFCONFIG=gki_defconfig$/DEFCONFIG=marble_defconfig/' build.config.gki
@@ -85,7 +88,7 @@ jobs:
             sed -i '/source "drivers\/staging\/kernelsu\/Kconfig"/d' drivers/staging/Kconfig
             sed -i '/obj-\$(CONFIG_KSU)[[:space:]]*+= kernelsu\//d' drivers/staging/Makefile
             rm -r drivers/staging/kernelsu
-          else if [[ ${{ env.kernel_source_url}} == melt-latest ]]; then
+          elif [[ ${{ env.kernel_source_url}} == melt-latest ]]; then
             git clone --filter=tree:0 https://github.com/Pzqqt/android_kernel_xiaomi_marble common
             cd common
             sed -i 's/^DEFCONFIG=gki_defconfig$/DEFCONFIG=marble_defconfig/' build.config.gki
@@ -98,11 +101,19 @@ jobs:
             exit 1
           fi
 
-      - name: Add KernelSU
-        if: ${{ inputs.ksu_patch }}
+      - name: Add KernelSU Release
+        if: ${{ inputs.ksu_patch == release }}
         run: | 
           cd android_build/common
           curl -LSs "https://raw.githubusercontent.com/tiann/KernelSU/main/kernel/setup.sh" | bash -
+          cd KernelSU
+          echo "KernelSU_version=$(expr 10200 + $(git rev-list --count HEAD))"  >> "$GITHUB_ENV"
+
+      - name: Add KerenlSU Dev
+        if: ${{ inputs.ksu_patch == dev }}
+        run: |
+          cd android_build/common
+          curl -LSs "https://raw.githubusercontent.com/tiann/KernelSU/main/kernel/setup.sh" | bash -s main
           cd KernelSU
           echo "KernelSU_version=$(expr 10200 + $(git rev-list --count HEAD))"  >> "$GITHUB_ENV"
 
