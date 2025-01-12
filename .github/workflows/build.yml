@@ -22,6 +22,7 @@ on:
         required: false
         type: choice
         options:
+          - none
           - release
           - dev
 
