@@ -103,7 +103,7 @@ jobs:
           fi
 
       - name: Add KernelSU Release
-        if: ${{ inputs.ksu_patch }} == release
+        if: contains(inputs.ksu_patch, 'release')
         run: | 
           cd android_build/common
           curl -LSs "https://raw.githubusercontent.com/tiann/KernelSU/main/kernel/setup.sh" | bash -
@@ -111,7 +111,7 @@ jobs:
           echo "KernelSU_version=$(expr 10200 + $(git rev-list --count HEAD))"  >> "$GITHUB_ENV"
 
       - name: Add KerenlSU Dev
-        if: ${{ inputs.ksu_patch }} == dev
+        if: contains(inputs.ksu_patch, 'dev')
         run: |
           cd android_build/common
           curl -LSs "https://raw.githubusercontent.com/tiann/KernelSU/main/kernel/setup.sh" | bash -s main
