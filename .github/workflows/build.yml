@@ -147,7 +147,7 @@ jobs:
             LTO=thin BUILD_CONFIG=common/build.config.xiaomi BUILD_NUMBER=${{ inputs.BUILD_NUMBER }} build/build.sh -j4
           else
             LTO=thin BUILD_CONFIG=common/build.config. BUILD_NUMBER=${{ inputs.BUILD_NUMBER }} build/build.sh -j4
-
+          fi
 
       - name: Add Apatch
         if: ${{ inputs.ap_patch }}
