@@ -83,7 +83,7 @@ jobs:
           elif [[ ${{ env.kernel_source_url}} == melt-release ]]; then
             git clone --filter=tree:0 https://github.com/Pzqqt/android_kernel_xiaomi_marble common -b $(git ls-remote --sort=-version:refname --tags https://github.com/Pzqqt/android_kernel_xiaomi_marble Melt-marble-v\* | head -n 1 | awk -F'/' '{print $NF}')
             cd common
-            sed -i 's/^DEFCONFIG=gki_defconfig$/DEFCONFIG=marble_defconfig/' build.config.gki
+            git tag -d $(git tag --list --sort=-version:refname | grep Melt-marble | head -n 1)
             sed -i '1,5d' arch/arm64/configs/marble_defconfig
             sed -i '116,121d' scripts/setlocalversion
             sed -i '/source "drivers\/staging\/kernelsu\/Kconfig"/d' drivers/staging/Kconfig
@@ -92,7 +92,6 @@ jobs:
           elif [[ ${{ env.kernel_source_url}} == melt-latest ]]; then
             git clone --filter=tree:0 https://github.com/Pzqqt/android_kernel_xiaomi_marble common
             cd common
-            sed -i 's/^DEFCONFIG=gki_defconfig$/DEFCONFIG=marble_defconfig/' build.config.gki
             sed -i '1,5d' arch/arm64/configs/marble_defconfig
             sed -i '116,121d' scripts/setlocalversion
             sed -i '/source "drivers\/staging\/kernelsu\/Kconfig"/d' drivers/staging/Kconfig
