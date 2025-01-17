@@ -55,10 +55,7 @@ jobs:
         run: echo "BUILDDATE=$(date +'%Y%m%d')" >> $GITHUB_OUTPUT
       
       - name: Clone Build Tool
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y git git-lfs zip
-          
+        run: |          
           mkdir -p ~/.bin
           PATH="${HOME}/.bin:${PATH}"
           curl https://storage.googleapis.com/git-repo-downloads/repo > ~/.bin/repo
@@ -66,8 +63,14 @@ jobs:
 
           mkdir android_build
           cd android_build
-          ~/.bin/repo init -u https://github.com/FlyLoongZ/kernel_build_scripts -b repo_manifest --git-lfs
+          git config --global user.email build-user@build-host
+          git config --global user.name build-user
+          ~/.bin/repo init -q -u https://github.com/FlyLoongZ/kernel_build_scripts -b repo_manifest
           ~/.bin/repo sync
+
+          mkdir -p prebuilts-master/clang/host/linux-x86/clang-r416183b
+          wget https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86/+archive/refs/heads/main/clang-r547379.tar.gz
+          tar -xvf linux-x86-refs_heads_main-clang-r547379.tar.gz -C prebuilts-master/clang/host/linux-x86/clang-r416183b
 
       - name: Clone Kernel Source
         env:
@@ -83,7 +86,7 @@ jobs:
           elif [[ ${{ env.kernel_source_url}} == melt-release ]]; then
             git clone --filter=tree:0 https://github.com/Pzqqt/android_kernel_xiaomi_marble common -b $(git ls-remote --sort=-version:refname --tags https://github.com/Pzqqt/android_kernel_xiaomi_marble Melt-marble-v\* | head -n 1 | awk -F'/' '{print $NF}')
             cd common
-            git tag -d $(git tag --list --sort=-version:refname | grep Melt-marble | head -n 1)
+            git tag -d $(git describe --tags)
             sed -i '1,5d' arch/arm64/configs/marble_defconfig
             sed -i '116,121d' scripts/setlocalversion
             sed -i '/source "drivers\/staging\/kernelsu\/Kconfig"/d' drivers/staging/Kconfig
