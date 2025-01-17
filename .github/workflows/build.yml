@@ -68,7 +68,7 @@ jobs:
           ~/.bin/repo init -q -u https://github.com/FlyLoongZ/kernel_build_scripts -b repo_manifest
           ~/.bin/repo sync
 
-          mkdir -p prebuilts-master/clang/host/linux-x86/clang-r416183b
+          mkdir -p prebuilts-master/clang/host/linux-x86
           git clone --filter=blob:none --sparse https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86 tmp-clone
           cd tmp-clone
           git sparse-checkout add clang-r547379
