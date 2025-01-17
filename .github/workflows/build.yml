@@ -94,9 +94,13 @@ jobs:
           elif [[ ${{ env.kernel_source_url}} == melt-release ]]; then
             git clone --filter=tree:0 https://github.com/Pzqqt/android_kernel_xiaomi_marble common -b $(git ls-remote --sort=-version:refname --tags https://github.com/Pzqqt/android_kernel_xiaomi_marble Melt-marble-v\* | head -n 1 | awk -F'/' '{print $NF}')
             mv ../0001-melt-build-fix.patch common/
+            cd common
+            git am 0001-melt-build-fix.patch
           elif [[ ${{ env.kernel_source_url}} == melt-latest ]]; then
             git clone --filter=tree:0 https://github.com/Pzqqt/android_kernel_xiaomi_marble common
             mv ../0001-melt-build-fix.patch common/
+            cd common
+            git am 0001-melt-build-fix.patch
           else
             exit 1
           fi
