@@ -69,8 +69,10 @@ jobs:
           ~/.bin/repo sync
 
           mkdir -p prebuilts-master/clang/host/linux-x86/clang-r416183b
-          wget https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86/+archive/refs/heads/main/clang-r547379.tar.gz
-          tar -xvf linux-x86-refs_heads_main-clang-r547379.tar.gz -C prebuilts-master/clang/host/linux-x86/clang-r416183b
+          git clone --filter=blob:none --sparse https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86 tmp-clone
+          cd tmp-clone
+          git sparse-checkout add clang-r547379
+          mv clang-r547379 ../prebuilts-master/clang/host/linux-x86/clang-r416183b
 
       - name: Clone Kernel Source
         env:
