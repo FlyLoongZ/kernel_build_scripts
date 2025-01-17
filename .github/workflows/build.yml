@@ -44,6 +44,9 @@ jobs:
   build-kernel:
     runs-on: ubuntu-latest
     steps:
+      - name: checkout source
+        uses: actions/checkout@v4
+
       - name: Setup CCache
         if: ${{ inputs.ccache_set }}
         uses: hendrikmuhs/ccache-action@v1.2
@@ -90,23 +93,10 @@ jobs:
             sed -i '116,121d' scripts/setlocalversion
           elif [[ ${{ env.kernel_source_url}} == melt-release ]]; then
             git clone --filter=tree:0 https://github.com/Pzqqt/android_kernel_xiaomi_marble common -b $(git ls-remote --sort=-version:refname --tags https://github.com/Pzqqt/android_kernel_xiaomi_marble Melt-marble-v\* | head -n 1 | awk -F'/' '{print $NF}')
-            cd common
-            git tag -d $(git describe --tags)
-            sed -i '1,5d' arch/arm64/configs/marble_defconfig
-            sed -i '1i\CONFIG_LOCALVERSION_AUTO=y' arch/arm64/configs/marble_defconfig
-            sed -i '116,121d' scripts/setlocalversion
-            sed -i '/source "drivers\/staging\/kernelsu\/Kconfig"/d' drivers/staging/Kconfig
-            sed -i '/obj-\$(CONFIG_KSU)[[:space:]]*+= kernelsu\//d' drivers/staging/Makefile
-            rm -r drivers/staging/kernelsu
+            mv ../0001-melt-build-fix.patch common/
           elif [[ ${{ env.kernel_source_url}} == melt-latest ]]; then
             git clone --filter=tree:0 https://github.com/Pzqqt/android_kernel_xiaomi_marble common
-            cd common
-            sed -i '1,5d' arch/arm64/configs/marble_defconfig
-            sed -i '1i\CONFIG_LOCALVERSION_AUTO=y' arch/arm64/configs/marble_defconfig
-            sed -i '116,121d' scripts/setlocalversion
-            sed -i '/source "drivers\/staging\/kernelsu\/Kconfig"/d' drivers/staging/Kconfig
-            sed -i '/obj-\$(CONFIG_KSU)[[:space:]]*+= kernelsu\//d' drivers/staging/Makefile
-            rm -r drivers/staging/kernelsu
+            mv ../0001-melt-build-fix.patch common/
           else
             exit 1
           fi
@@ -153,9 +143,9 @@ jobs:
           cd ..
 
           if [[ ${{ env.choice_kernel }} == ztc1997-5.10 ]]; then
-            LTO=thin BUILD_CONFIG=common/build.config.gki.aarch64 BUILD_NUMBER=${{ inputs.BUILD_NUMBER }} build/build.sh -j4
+            LTO=thin HERMETIC_TOOLCHAIN=0 BUILD_CONFIG=common/build.config.gki.aarch64 BUILD_NUMBER=${{ inputs.BUILD_NUMBER }} build/build.sh -j4
           else
-            LTO=thin HERMETIC_TOOLCHAIN=0 BUILD_CONFIG=common/build.config.xiaomi BUILD_NUMBER=${{ inputs.BUILD_NUMBER }} build/build.sh -j4
+            LTO=thin HERMETIC_TOOLCHAIN=0 BUILD_CONFIG=common/build.config.gki.aarch64 BUILD_NUMBER=${{ inputs.BUILD_NUMBER }} build/build.sh -j4
           fi
 
       - name: Add Apatch
