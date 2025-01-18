@@ -1,12 +1,13 @@
-From 9ea130fe753be85c702006ca7cbb4182a0b78db1 Mon Sep 17 00:00:00 2001
+From af101bd826cbaa1de90ea0787a0d0134ccdfe889 Mon Sep 17 00:00:00 2001
 From: FlyLoongZ <60963681+FlyLoongZ@users.noreply.github.com>
-Date: Sat, 18 Jan 2025 02:51:06 +0800
+Date: Sat, 18 Jan 2025 23:39:21 +0800
 Subject: [PATCH] melt build fix
 
 ---
  arch/arm64/configs/marble_defconfig         |   6 +-
  build.config.common                         |   1 -
- build.config.gki                            |   1 -
+ build.config.gki                            |   4 +-
+ build.config.gki.aarch64                    |   1 -
  drivers/staging/Kconfig                     |   1 -
  drivers/staging/Makefile                    |   1 -
  drivers/staging/kernelsu/.clang-format      | 548 -------------
@@ -42,7 +43,7 @@ Subject: [PATCH] melt build fix
  drivers/staging/kernelsu/throne_tracker.c   | 378 ---------
  drivers/staging/kernelsu/throne_tracker.h   |  10 -
  scripts/setlocalversion                     |  14 +-
- 38 files changed, 8 insertions(+), 6043 deletions(-)
+ 39 files changed, 9 insertions(+), 6046 deletions(-)
  delete mode 100644 drivers/staging/kernelsu/.clang-format
  delete mode 100644 drivers/staging/kernelsu/Kconfig
  delete mode 100644 drivers/staging/kernelsu/LICENSE
@@ -77,7 +78,7 @@ Subject: [PATCH] melt build fix
  delete mode 100644 drivers/staging/kernelsu/throne_tracker.h
 
 diff --git a/arch/arm64/configs/marble_defconfig b/arch/arm64/configs/marble_defconfig
-index e4b0957687b..a672cc0545d 100644
+index c622c3c9525..ffa29a909e6 100644
 --- a/arch/arm64/configs/marble_defconfig
 +++ b/arch/arm64/configs/marble_defconfig
 @@ -1,8 +1,4 @@
@@ -102,13 +103,26 @@ index 9ec1c637a79..0b67b94d65c 100644
  
  HERMETIC_TOOLCHAIN=${HERMETIC_TOOLCHAIN:-1}
 diff --git a/build.config.gki b/build.config.gki
-index 44d4ed1bee1..43ba6fc460a 100644
+index 44d4ed1bee1..9bee4151058 100644
 --- a/build.config.gki
 +++ b/build.config.gki
-@@ -1,3 +1,2 @@
- DEFCONFIG=gki_defconfig
+@@ -1,3 +1 @@
+-DEFCONFIG=gki_defconfig
 -POST_DEFCONFIG_CMDS="check_defconfig"
+-
++DEFCONFIG=marble_defconfig
+diff --git a/build.config.gki.aarch64 b/build.config.gki.aarch64
+index 452ed209b09..0e54be5ccb8 100644
+--- a/build.config.gki.aarch64
++++ b/build.config.gki.aarch64
+@@ -45,7 +45,6 @@ arch/arm64/boot/Image.lz4
  
+ TRIM_NONLISTED_KMI=${TRIM_NONLISTED_KMI:-1}
+ KMI_SYMBOL_LIST_STRICT_MODE=${KMI_SYMBOL_LIST_STRICT_MODE:-1}
+-MODULES_ORDER=android/gki_aarch64_modules
+ KMI_ENFORCED=1
+ 
+ if [ -n "${GKI_DEFCONFIG_FRAGMENT}" ]; then
 diff --git a/drivers/staging/Kconfig b/drivers/staging/Kconfig
 index 7d42ad87437..b1c370d04f4 100644
 --- a/drivers/staging/Kconfig
@@ -6355,7 +6369,7 @@ index 5d7f477003a..00000000000
 -
 -#endif
 diff --git a/scripts/setlocalversion b/scripts/setlocalversion
-index 842936656b8..a37a6e78670 100755
+index 842936656b8..963355a7542 100755
 --- a/scripts/setlocalversion
 +++ b/scripts/setlocalversion
 @@ -98,7 +98,7 @@ scm_version()
@@ -6363,7 +6377,7 @@ index 842936656b8..a37a6e78670 100755
  			else
  				head="$(echo $head | cut -c1-12)"
 -				printf '%s%s' -g $head
-+				printf %s%05d%s%s - $((RANDOM % 128 + 1)) -g $head
++				printf '%s%05d%s%s' - $((RANDOM % 128 + 1)) -g $head
  			fi
  		fi
  
