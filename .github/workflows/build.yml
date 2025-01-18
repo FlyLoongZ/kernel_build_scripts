@@ -86,18 +86,17 @@ jobs:
         run: |
           cd android_build
           if [[ ${{ env.kernel_source_url}} == ztc1997-5.10 ]]; then
-            git clone --filter=tree:0 https://github.com/ztc1997/android_gki_kernel_5.10_common common
+            git clone --depth=1 https://github.com/ztc1997/android_gki_kernel_5.10_common common
+            mv ../0001-ztc1997-build-patch.patch common/
             cd common
-            git tag -a v5.10.226 -m "android12-5.10" fbe645b
-            sed -i '1d' arch/arm64/configs/gki_defconfig
-            sed -i '116,121d' scripts/setlocalversion
+            git am 0001-ztc1997-build-patch.patch
           elif [[ ${{ env.kernel_source_url}} == melt-release ]]; then
-            git clone --filter=tree:0 https://github.com/Pzqqt/android_kernel_xiaomi_marble common -b $(git ls-remote --sort=-version:refname --tags https://github.com/Pzqqt/android_kernel_xiaomi_marble Melt-marble-v\* | head -n 1 | awk -F'/' '{print $NF}')
+            git clone --depth=1 https://github.com/Pzqqt/android_kernel_xiaomi_marble common -b $(git ls-remote --sort=-version:refname --tags https://github.com/Pzqqt/android_kernel_xiaomi_marble Melt-marble-v\* | head -n 1 | awk -F'/' '{print $NF}')
             mv ../0001-melt-build-fix.patch common/
             cd common
             git am 0001-melt-build-fix.patch
           elif [[ ${{ env.kernel_source_url}} == melt-latest ]]; then
-            git clone --filter=tree:0 https://github.com/Pzqqt/android_kernel_xiaomi_marble common
+            git clone --depth=1 https://github.com/Pzqqt/android_kernel_xiaomi_marble common
             mv ../0001-melt-build-fix.patch common/
             cd common
             git am 0001-melt-build-fix.patch
@@ -143,14 +142,8 @@ jobs:
           cd android_build/common
           git config --global user.email build-user@build-host
           git config --global user.name build-user
-          echo -e ". \${ROOT_DIR}/\${KERNEL_DIR}/build.config.common\n. \${ROOT_DIR}/\${KERNEL_DIR}/build.config.aarch64\nDEFCONFIG=marble_defconfig\n" >> build.config.xiaomi
-          cd ..
 
-          if [[ ${{ env.choice_kernel }} == ztc1997-5.10 ]]; then
-            LTO=thin HERMETIC_TOOLCHAIN=0 BUILD_CONFIG=common/build.config.gki.aarch64 BUILD_NUMBER=${{ inputs.BUILD_NUMBER }} build/build.sh -j4
-          else
-            LTO=thin HERMETIC_TOOLCHAIN=0 BUILD_CONFIG=common/build.config.gki.aarch64 BUILD_NUMBER=${{ inputs.BUILD_NUMBER }} build/build.sh -j4
-          fi
+          LTO=thin HERMETIC_TOOLCHAIN=0 BUILD_CONFIG=common/build.config.gki.aarch64 BUILD_NUMBER=${{ inputs.BUILD_NUMBER }} build/build.sh -j4
 
       - name: Add Apatch
         if: ${{ inputs.ap_patch }}
