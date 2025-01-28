@@ -144,6 +144,7 @@ jobs:
           cd android_build/common
           git config --global user.email build-user@build-host
           git config --global user.name build-user
+          cd ..
 
           LTO=thin HERMETIC_TOOLCHAIN=0 BUILD_CONFIG=common/build.config.gki.aarch64 BUILD_NUMBER=${{ inputs.BUILD_NUMBER }} build/build.sh -j4
 
