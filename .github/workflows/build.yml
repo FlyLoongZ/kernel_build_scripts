@@ -95,11 +95,13 @@ jobs:
             mv ../0001-melt-build-fix.patch common/
             cd common
             git am 0001-melt-build-fix.patch
+            rm -r drivers/staging/kernelsu
           elif [[ ${{ env.kernel_source_url}} == melt-latest ]]; then
             git clone --depth=1 https://github.com/Pzqqt/android_kernel_xiaomi_marble common
             mv ../0001-melt-build-fix.patch common/
             cd common
             git am 0001-melt-build-fix.patch
+            rm -r drivers/staging/kernelsu
           else
             exit 1
           fi
