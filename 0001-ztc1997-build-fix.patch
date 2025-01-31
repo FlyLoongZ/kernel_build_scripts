@@ -26,7 +26,7 @@ index 842936656..963355a75 100755
  			else
  				head="$(echo $head | cut -c1-12)"
 -				printf '%s%s' -g $head
-+				printf '%s%05d%s%s' - $((RANDOM % 128 + 1)) -g $head
++				printf '%s%05d%s%s' - $(( ( $(od -An -N1 -tu1 < /dev/urandom) % 113 ) + 16 )) -g $head
  			fi
  		fi
  
