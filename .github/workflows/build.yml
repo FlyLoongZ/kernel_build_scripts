@@ -11,10 +11,11 @@ on:
           - ztc1997-5.10
           - melt-release
           - melt-latest
+          - aosp-android12-5.10
 
       BUILD_NUMBER:
         description: 'ci.android.com build number'
-        required: true
+        required: false
         type: string
 
       ksu_patch:
@@ -81,27 +82,30 @@ jobs:
           mv clang-r547379 ../prebuilts-master/clang/host/linux-x86/clang-r416183b
 
       - name: Clone Kernel Source
-        env:
-          kernel_source_url: ${{ inputs.kernel_source_url }}
         run: |
           cd android_build
-          if [[ ${{ env.kernel_source_url}} == ztc1997-5.10 ]]; then
+          if [[ ${{ inputs.kernel_source_url }} == ztc1997-5.10 ]]; then
             git clone --depth=1 https://github.com/ztc1997/android_gki_kernel_5.10_common common
             mv ../0001-ztc1997-build-fix.patch common/
             cd common
             git am 0001-ztc1997-build-fix.patch
-          elif [[ ${{ env.kernel_source_url}} == melt-release ]]; then
+          elif [[ ${{ inputs.kernel_source_url }} == melt-release ]]; then
             git clone --depth=1 https://github.com/Pzqqt/android_kernel_xiaomi_marble common -b $(git ls-remote --sort=-version:refname --tags https://github.com/Pzqqt/android_kernel_xiaomi_marble Melt-marble-v\* | head -n 1 | awk -F'/' '{print $NF}')
             mv ../0001-melt-build-fix.patch common/
             cd common
             git am 0001-melt-build-fix.patch
             rm -r drivers/staging/kernelsu
-          elif [[ ${{ env.kernel_source_url}} == melt-latest ]]; then
+          elif [[ ${{ inputs.kernel_source_url }} == melt-latest ]]; then
             git clone --depth=1 https://github.com/Pzqqt/android_kernel_xiaomi_marble common
             mv ../0001-melt-build-fix.patch common/
             cd common
             git am 0001-melt-build-fix.patch
             rm -r drivers/staging/kernelsu
+          elif [[ ${{ inputs.kernel_source_url }} == aosp-android12-5.10 ]]; then
+            git clone --depth=1 https://android.googlesource.com/kernel/common -b android12-5.10
+            mv ../0001-aosp-kernel-build-fix.patch common/
+            cd common
+            git am 0001-aosp-kernel-build-fix.patch
           else
             exit 1
           fi
@@ -146,7 +150,11 @@ jobs:
           git config --global user.name build-user
           cd ..
 
-          LTO=thin HERMETIC_TOOLCHAIN=0 BUILD_CONFIG=common/build.config.gki.aarch64 BUILD_NUMBER=${{ inputs.BUILD_NUMBER }} build/build.sh -j4
+          if [[ ${{ inputs.kernel_source_url }} == aosp-android12-5.10 ]]; then
+            LTO=thin HERMETIC_TOOLCHAIN=0 BUILD_CONFIG=common/build.config.gki.aarch64 BUILD_NUMBER=$(git tag -n4 | awk -F'/' '/submitted/ {print $6}') build/build.sh -j4
+          else
+            LTO=thin HERMETIC_TOOLCHAIN=0 BUILD_CONFIG=common/build.config.gki.aarch64 BUILD_NUMBER=${{ inputs.BUILD_NUMBER }} build/build.sh -j4
+          fi
 
       - name: Add Apatch
         if: ${{ inputs.ap_patch }}
@@ -199,7 +207,13 @@ jobs:
 
           echo "Kernel Version: ${{ steps.set-env-kernel-version.outputs.KERNEL_VERSION }}-ab${{ inputs.BUILD_NUMBER }}" >> release.txt
           echo "Kernel Source: $(cd android_build/common && git remote -v | awk '/https/ {print $2; exit}')" >> release.txt
-          echo "Kernel Source Branch: $(cd android_build/common && git branch --show-current)" >> release.txt
+          if [[ ${{ inputs.kernel_source_url }} == melt-release ]]; then
+            echo "Kernel Source Branch: $(cd android_build/common && git tag)" >> release.txt
+          elif [[ ${{ inputs.kernel_source_url }} == aosp-android12-5.10 ]]; then
+            echo "Kernel Source Branch: $(cd android_build/common && git tag)" >> release.txt
+          else
+            echo "Kernel Source Branch: $(cd android_build/common && git branch --show-current)" >> release.txt
+          fi
           echo "Kernel Source Commit: $(cd android_build/common && git rev-parse --short HEAD)" >> release.txt
       
       - name: Create GitHub Release
