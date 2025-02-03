@@ -27,6 +27,11 @@ on:
           - release
           - dev
 
+      susfs4ksu_patch:
+        description: 'Add susfs4ksu patch'
+        required: false
+        type: boolean
+
       ap_patch:
         description: 'Add Apatch release patch'
         required: false
@@ -126,6 +131,26 @@ jobs:
           cd KernelSU
           echo "KernelSU_version=$(expr 10200 + $(git rev-list --count HEAD))"  >> "$GITHUB_ENV"
 
+      - name: Add susfs4ksu patch
+        if: ${{ inputs.susfs4ksu_patch }}
+        env:
+          ksu_patch_set: ${{ inputs.ksu_patch }}
+        run: |
+          if [[ ${{ env.ksu_patch_set }} == none ]]; then
+            echo "ksu patch no enable"
+          else
+            git clone https://gitlab.com/simonpunk/susfs4ksu.git -b gki-android12-5.10
+            cp susfs4ksu/kernel_patches/KernelSU/10_enable_susfs_for_ksu.patch android_build/common/KernelSU/
+            cp susfs4ksu/kernel_patches/50_add_susfs_in_gki-android12-5.10.patch android_build/common/
+            cp susfs4ksu/kernel_patches/fs/* android_build/common/fs/
+            cp susfs4ksu/kernel_patches/include/linux/* android_build/common/include/linux/
+
+            cd android_build/common/KerenlSU
+            patch -p1 < 10_enable_susfs_for_ksu.patch
+            cd ..
+            patch -p1 < 50_add_susfs_in_gki-android12-5.10.patch
+          fi
+
       - name: Set CCache Env
         if: ${{ inputs.ccache_set }}
         run: |
@@ -151,7 +176,7 @@ jobs:
           cd ..
 
           if [[ ${{ inputs.kernel_source_url }} == aosp-android12-5.10 ]]; then
-            LTO=thin HERMETIC_TOOLCHAIN=0 BUILD_CONFIG=common/build.config.gki.aarch64 BUILD_NUMBER=$(git tag -n4 | awk -F'/' '/submitted/ {print $6}') build/build.sh -j4
+            LTO=thin HERMETIC_TOOLCHAIN=0 BUILD_CONFIG=common/build.config.gki.aarch64 BUILD_NUMBER=$(cd common && git tag -n4 | awk -F'/' '/submitted/ {print $6}') build/build.sh -j4
           else
             LTO=thin HERMETIC_TOOLCHAIN=0 BUILD_CONFIG=common/build.config.gki.aarch64 BUILD_NUMBER=${{ inputs.BUILD_NUMBER }} build/build.sh -j4
           fi
