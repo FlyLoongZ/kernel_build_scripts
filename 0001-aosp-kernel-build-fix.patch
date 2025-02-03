@@ -1,0 +1,44 @@
+From 3c5a82a1cfe87176416183cb54fa5794465f7799 Mon Sep 17 00:00:00 2001
+From: FlyLoongZ <60963681+FlyLoongZ@users.noreply.github.com>
+Date: Mon, 3 Feb 2025 23:10:54 +0800
+Subject: [PATCH] aosp kernel build fix
+
+---
+ scripts/setlocalversion | 14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
+
+diff --git a/scripts/setlocalversion b/scripts/setlocalversion
+index 842936656..ee59e881b 100755
+--- a/scripts/setlocalversion
++++ b/scripts/setlocalversion
+@@ -98,7 +98,7 @@ scm_version()
+ 			# again using exactly 12 hex chars.
+ 			else
+ 				head="$(echo $head | cut -c1-12)"
+-				printf '%s%s' -g $head
++				printf '%s%05d%s%s' - $(( ( $(od -An -N1 -tu1 < /dev/urandom) % 113 ) + 16 )) -g $head
+ 			fi
+ 		fi
+ 
+@@ -113,12 +113,12 @@ scm_version()
+ 		# it fails. Note that git-diff-index does not refresh the
+ 		# index, so it may give misleading results. See
+ 		# git-update-index(1), git-diff-index(1), and git-status(1).
+-		if {
+-			git --no-optional-locks status -uno --porcelain 2>/dev/null ||
+-			git diff-index --name-only HEAD
+-		} | grep -qvE '^(.. )?scripts/package'; then
+-			printf '%s' -dirty
+-		fi
++		#####if {
++		#	git --no-optional-locks status -uno --porcelain 2>/dev/null ||
++		#	git diff-index --name-only HEAD
++		#} | grep -qvE '^(.. )?scripts/package'; then
++		#	printf '%s' -dirty
++		#####fi
+ 
+ 		# All done with git
+ 		return
+-- 
+2.48.1
+
