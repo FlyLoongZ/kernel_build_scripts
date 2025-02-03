@@ -142,7 +142,7 @@ jobs:
             cp susfs4ksu/kernel_patches/fs/* android_build/common/fs/
             cp susfs4ksu/kernel_patches/include/linux/* android_build/common/include/linux/
 
-            cd android_build/common/KerenlSU
+            cd android_build/common/KernelSU
             patch -p1 < 10_enable_susfs_for_ksu.patch
             cd ..
             patch -p1 < 50_add_susfs_in_gki-android12-5.10.patch
@@ -213,12 +213,17 @@ jobs:
         env: 
           ksu_patch: ${{ inputs.ksu_patch }}
           ap_patch: ${{ inputs.ap_patch }}
+          susfs4ksu_patch: ${{ inputs.susfs4ksu_patch }}
         run: |
           if [[ ${{ env.ksu_patch }} != none ]]; then
             echo "KernelSU: ✔️" >> release.txt
             echo "KernelSU Version: $KernelSU_version" >> release.txt
           else
             echo "KernelSU: ❌" >> release.txt
+          fi
+
+          if [[ ${{ env.susfs4ksu_patch }} == true ]]; then
+            echo "susfs4ksu: ✔️" >> release.txt
           fi
 
           if [[ ${{ env.ap_patch }} == true ]]; then
