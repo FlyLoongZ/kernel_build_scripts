@@ -1,12 +1,137 @@
-From 3c5a82a1cfe87176416183cb54fa5794465f7799 Mon Sep 17 00:00:00 2001
+From be5940e5269a76623d5ce7e38a2a9d0ddea711c2 Mon Sep 17 00:00:00 2001
 From: FlyLoongZ <60963681+FlyLoongZ@users.noreply.github.com>
-Date: Mon, 3 Feb 2025 23:10:54 +0800
+Date: Tue, 4 Feb 2025 22:50:20 +0800
 Subject: [PATCH] aosp kernel build fix
 
+Change-Id: I21f90179c8073f85f8af548c61dc47ba99604ff4
 ---
- scripts/setlocalversion | 14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+ Makefile                         | 37 ++++++++++++++++++++++++++++++++
+ arch/Kconfig                     |  8 +++++++
+ arch/arm64/Kconfig               |  3 ++-
+ arch/arm64/configs/gki_defconfig |  6 ++++--
+ scripts/setlocalversion          | 14 ++++++------
+ 5 files changed, 58 insertions(+), 10 deletions(-)
 
+diff --git a/Makefile b/Makefile
+index ba5e6483d..305cd6362 100644
+--- a/Makefile
++++ b/Makefile
+@@ -773,6 +773,11 @@ KBUILD_CFLAGS	+= $(call cc-disable-warning, format-truncation)
+ KBUILD_CFLAGS	+= $(call cc-disable-warning, format-overflow)
+ KBUILD_CFLAGS	+= $(call cc-disable-warning, address-of-packed-member)
+ 
++#Enable MLGO for register allocation.
++KBUILD_CFLAGS   += -mllvm -regalloc-enable-advisor=release
++#Enable hot cold split optimization
++KBUILD_CFLAGS   += -mllvm -hot-cold-split=true
++
+ ifdef CONFIG_CC_OPTIMIZE_FOR_PERFORMANCE
+ KBUILD_CFLAGS += -O2
+ else ifdef CONFIG_CC_OPTIMIZE_FOR_PERFORMANCE_O3
+@@ -781,6 +786,35 @@ else ifdef CONFIG_CC_OPTIMIZE_FOR_SIZE
+ KBUILD_CFLAGS += -Os
+ endif
+ 
++ifdef CONFIG_LLVM_POLLY
++KBUILD_CFLAGS	+= -mllvm -polly \
++		   -mllvm -polly-run-inliner \
++		   -mllvm -polly-ast-use-context \
++		   -mllvm -polly-detect-keep-going \
++		   -mllvm -polly-invariant-load-hoisting \
++		   -mllvm -polly-vectorizer=stripmine
++
++ifeq ($(shell test $(CONFIG_CLANG_VERSION) -gt 130000; echo $$?),0)
++KBUILD_CFLAGS	+= -mllvm -polly-loopfusion-greedy=1 \
++		   -mllvm -polly-reschedule=1 \
++		   -mllvm -polly-postopts=1 \
++		   -mllvm -polly-num-threads=0 \
++		   -mllvm -polly-omp-backend=LLVM \
++		   -mllvm -polly-scheduling=dynamic \
++		   -mllvm -polly-scheduling-chunksize=1
++else
++KBUILD_CFLAGS	+= -mllvm -polly-opt-fusion=max
++endif
++
++# Polly may optimise loops with dead paths beyound what the linker
++# can understand. This may negate the effect of the linker's DCE
++# so we tell Polly to perfom proven DCE on the loops it optimises
++# in order to preserve the overall effect of the linker's DCE.
++ifdef CONFIG_LD_DEAD_CODE_DATA_ELIMINATION
++POLLY_FLAGS	+= -mllvm -polly-run-dce
++endif
++endif
++
+ # Tell gcc to never replace conditional load with a non-conditional one
+ KBUILD_CFLAGS	+= $(call cc-option,--param=allow-store-data-races=0)
+ KBUILD_CFLAGS	+= $(call cc-option,-fno-allow-store-data-races)
+@@ -965,6 +999,9 @@ endif
+ 
+ # Limit inlining across translation units to reduce binary size
+ KBUILD_LDFLAGS += -mllvm -import-instr-limit=5
++
++#Enable MLGO for register allocation.
++KBUILD_LDFLAGS += -mllvm -regalloc-enable-advisor=release
+ endif
+ 
+ ifdef CONFIG_LTO
+diff --git a/arch/Kconfig b/arch/Kconfig
+index a31288fca..d18ee26fc 100644
+--- a/arch/Kconfig
++++ b/arch/Kconfig
+@@ -738,6 +738,14 @@ config CFI_PERMISSIVE
+ 	  warning instead of a kernel panic. This option is useful for finding
+ 	  CFI violations during development.
+ 
++config LLVM_POLLY
++	bool "Enable LLVM's polyhedral loop optimizer (Polly)"
++	help
++	  This option enables LLVM's polyhedral loop optimizer known as Polly.
++	  Polly is able to optimize various loops throughout the kernel for
++	  maximum cache locality. This requires an LLVM toolchain explicitly
++	  compiled with Polly support.
++
+ config HAVE_ARCH_WITHIN_STACK_FRAMES
+ 	bool
+ 	help
+diff --git a/arch/arm64/Kconfig b/arch/arm64/Kconfig
+index 41b032380..653886ea1 100644
+--- a/arch/arm64/Kconfig
++++ b/arch/arm64/Kconfig
+@@ -1996,7 +1996,8 @@ config CC_HAVE_STACKPROTECTOR_SYSREG
+ 	def_bool $(cc-option,-mstack-protector-guard=sysreg -mstack-protector-guard-reg=sp_el0 -mstack-protector-guard-offset=0)
+ 
+ config STACKPROTECTOR_PER_TASK
+-	def_bool y
++	bool "Stack Protector per task"
++	default y
+ 	depends on STACKPROTECTOR && CC_HAVE_STACKPROTECTOR_SYSREG
+ 
+ endmenu
+diff --git a/arch/arm64/configs/gki_defconfig b/arch/arm64/configs/gki_defconfig
+index c79d77da3..0bd00d8a4 100644
+--- a/arch/arm64/configs/gki_defconfig
++++ b/arch/arm64/configs/gki_defconfig
+@@ -63,7 +63,8 @@ CONFIG_CP15_BARRIER_EMULATION=y
+ CONFIG_SETEND_EMULATION=y
+ CONFIG_RANDOMIZE_BASE=y
+ # CONFIG_RANDOMIZE_MODULE_REGION_FULL is not set
+-CONFIG_CMDLINE="stack_depot_disable=on kasan.stacktrace=off kvm-arm.mode=protected cgroup_disable=pressure cgroup.memory=nokmem"
++# CONFIG_STACKPROTECTOR_PER_TASK is not set
++CONFIG_CMDLINE="stack_depot_disable=on kasan.stacktrace=off kvm-arm.mode=protected cgroup_disable=pressure cgroup.memory=nokmem noirqdebug"
+ CONFIG_CMDLINE_EXTEND=y
+ # CONFIG_DMI is not set
+ CONFIG_PM_WAKELOCKS=y
+@@ -94,8 +95,9 @@ CONFIG_CRYPTO_AES_ARM64_CE_BLK=y
+ CONFIG_KPROBES=y
+ CONFIG_JUMP_LABEL=y
+ CONFIG_SHADOW_CALL_STACK=y
+-CONFIG_LTO_CLANG_FULL=y
++CONFIG_LTO_CLANG_THIN=y
+ CONFIG_CFI_CLANG=y
++CONFIG_LLVM_POLLY=y
+ CONFIG_MODULES=y
+ CONFIG_MODULE_UNLOAD=y
+ CONFIG_MODVERSIONS=y
 diff --git a/scripts/setlocalversion b/scripts/setlocalversion
 index 842936656..ee59e881b 100755
 --- a/scripts/setlocalversion

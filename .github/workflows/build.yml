@@ -194,20 +194,20 @@ jobs:
           
       - name: Read Kernel Version
         id: set-env-kernel-version
-        run: echo "KERNEL_VERSION=$(basename $(find ./android_build/out/android12-5.10/staging/lib/modules/ -name "*android12*"))" >> $GITHUB_OUTPUT
+        run: echo "KERNEL_VERSION=$(awk -F'"' '{print $2}' android_build/out/android12-5.10/common/include/generated/utsrelease.h)" >> $GITHUB_OUTPUT
 
       - name: Upload Image
         uses: actions/upload-artifact@v4
         with:
-          name: "Out-${{ steps.set-env-kernel-version.outputs.KERNEL_VERSION }}-ab${{ inputs.BUILD_NUMBER }}"
-          path: android_build/out/android12-5.10/dist/
+          name: "Image-${{ steps.set-env-kernel-version.outputs.KERNEL_VERSION }}"
+          path: android_build/out/android12-5.10/dist/Image
       
       - name: Package Kerenl
         run: |
           git clone --depth=1 https://github.com/FlyLoongZ/AnyKernel3
           cp android_build/out/android12-5.10/dist/Image AnyKernel3/Image
           cd AnyKernel3
-          zip -r9 "Anykernel3-${{ steps.set-env-kernel-version.outputs.KERNEL_VERSION }}-ab${{ inputs.BUILD_NUMBER }}.zip" * -x .git README.md
+          zip -r9 "Anykernel3-${{ steps.set-env-kernel-version.outputs.KERNEL_VERSION }}.zip" * -x .git README.md
       
       - name: Create Release Text
         env: 
@@ -218,26 +218,22 @@ jobs:
           if [[ ${{ env.ksu_patch }} != none ]]; then
             echo "KernelSU: ✔️" >> release.txt
             echo "KernelSU Version: $KernelSU_version" >> release.txt
-          else
-            echo "KernelSU: ❌" >> release.txt
-          fi
-
-          if [[ ${{ env.susfs4ksu_patch }} == true ]]; then
-            echo "susfs4ksu: ✔️" >> release.txt
+            if [[ ${{ env.susfs4ksu_patch }} == true ]]; then
+              echo "susfs4ksu: ✔️" >> release.txt
+              echo "susfs4ksu Version: $(cat android_build/common/include/linux/susfs.h | grep -E '^#define SUSFS_VERSION' | cut -d' ' -f3 | sed 's/"//g')"
+            fi
           fi
 
           if [[ ${{ env.ap_patch }} == true ]]; then
             echo "Apatch: ✔️" >> release.txt
-          else
-            echo "Apatch: ❌" >> release.txt
           fi
 
-          echo "Kernel Version: ${{ steps.set-env-kernel-version.outputs.KERNEL_VERSION }}-ab${{ inputs.BUILD_NUMBER }}" >> release.txt
+          echo "Kernel Version: ${{ steps.set-env-kernel-version.outputs.KERNEL_VERSION }}" >> release.txt
           echo "Kernel Source: $(cd android_build/common && git remote -v | awk '/https/ {print $2; exit}')" >> release.txt
           if [[ ${{ inputs.kernel_source_url }} == melt-release ]]; then
-            echo "Kernel Source Branch: $(cd android_build/common && git tag)" >> release.txt
+            echo "Kernel Source Tag: $(cd android_build/common && git tag)" >> release.txt
           elif [[ ${{ inputs.kernel_source_url }} == aosp-android12-5.10 ]]; then
-            echo "Kernel Source Branch: $(cd android_build/common && git tag)" >> release.txt
+            echo "Kernel Source Tag: $(cd android_build/common && git tag)" >> release.txt
           else
             echo "Kernel Source Branch: $(cd android_build/common && git branch --show-current)" >> release.txt
           fi
@@ -247,5 +243,5 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ steps.set-env-date.outputs.BUILDDATE }}.${{ github.run_number }}
-          files: "AnyKernel3/Anykernel3-${{ steps.set-env-kernel-version.outputs.KERNEL_VERSION }}-ab${{ inputs.BUILD_NUMBER }}.zip"
+          files: "AnyKernel3/Anykernel3-${{ steps.set-env-kernel-version.outputs.KERNEL_VERSION }}.zip"
           body_path: release.txt
