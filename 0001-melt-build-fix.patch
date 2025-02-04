@@ -1,6 +1,6 @@
-From 957878d1459209581eebc2c40a3e0e5d550ca777 Mon Sep 17 00:00:00 2001
+From d22c869ca4cca1f6b37a35687e35d6328783b40b Mon Sep 17 00:00:00 2001
 From: FlyLoongZ <60963681+FlyLoongZ@users.noreply.github.com>
-Date: Tue, 28 Jan 2025 14:37:13 +0800
+Date: Tue, 4 Feb 2025 23:34:37 +0800
 Subject: [PATCH] melt build fix
 
 ---
@@ -10,8 +10,8 @@ Subject: [PATCH] melt build fix
  build.config.gki.aarch64            |  1 -
  drivers/staging/Kconfig             |  2 --
  drivers/staging/Makefile            |  1 -
- scripts/setlocalversion             | 14 +++++++-------
- 7 files changed, 9 insertions(+), 20 deletions(-)
+ scripts/setlocalversion             | 22 +++++++++++-----------
+ 7 files changed, 13 insertions(+), 24 deletions(-)
 
 diff --git a/arch/arm64/configs/marble_defconfig b/arch/arm64/configs/marble_defconfig
 index c622c3c95..ffa29a909 100644
@@ -84,18 +84,30 @@ index 91660fb2d..7e6efe241 100644
  obj-$(CONFIG_EXTEND_RECLAIM)	+= extend_reclaim/
  obj-$(CONFIG_BINDER_PRIO)	+= binder_prio/
 diff --git a/scripts/setlocalversion b/scripts/setlocalversion
-index 842936656..963355a75 100755
+index 842936656..b0edce272 100755
 --- a/scripts/setlocalversion
 +++ b/scripts/setlocalversion
-@@ -98,7 +98,7 @@ scm_version()
+@@ -91,15 +91,15 @@ scm_version()
+ 			# --abbrev=12 ensures a minimum of 12, and the
+ 			# awk substr() then picks the 'g' and first 12
+ 			# hex chars.
+-			if atag="$(git describe --abbrev=12 2>/dev/null)"; then
+-				echo "$atag" | awk -F- '{printf("-%05d-%s", $(NF-1),substr($(NF),0,13))}'
++			#####if atag="$(git describe --abbrev=12 2>/dev/null)"; then
++			##	echo "$atag" | awk -F- '{printf("-%05d-%s", $(NF-1),substr($(NF),0,13))}'
+ 
+ 			# If we don't have a tag at all we print -g{commitish},
  			# again using exactly 12 hex chars.
- 			else
+-			else
++			##else
  				head="$(echo $head | cut -c1-12)"
 -				printf '%s%s' -g $head
+-			fi
 +				printf '%s%05d%s%s' - $(( ( $(od -An -N1 -tu1 < /dev/urandom) % 113 ) + 16 )) -g $head
- 			fi
++			#####fi
  		fi
  
+ 		# Is this git on svn?
 @@ -113,12 +113,12 @@ scm_version()
  		# it fails. Note that git-diff-index does not refresh the
  		# index, so it may give misleading results. See
@@ -106,12 +118,12 @@ index 842936656..963355a75 100755
 -		} | grep -qvE '^(.. )?scripts/package'; then
 -			printf '%s' -dirty
 -		fi
-+		##if {
++		#####if {
 +		##	git --no-optional-locks status -uno --porcelain 2>/dev/null ||
 +		##	git diff-index --name-only HEAD
 +		##} | grep -qvE '^(.. )?scripts/package'; then
 +		##	printf '%s' -dirty
-+		##fi
++		#####fi
  
  		# All done with git
  		return
