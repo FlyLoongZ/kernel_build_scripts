@@ -11,11 +11,11 @@ on:
           - ztc1997-5.10
           - melt-release
           - melt-latest
-          - aosp-android12-5.10
+          - fork-melt-fix
 
       BUILD_NUMBER:
         description: 'ci.android.com build number'
-        required: false
+        required: ture
         type: string
 
       ksu_patch:
@@ -103,11 +103,8 @@ jobs:
             cd common
             git am 0001-melt-build-fix.patch
             rm -r drivers/staging/kernelsu
-          elif [[ ${{ inputs.kernel_source_url }} == aosp-android12-5.10 ]]; then
-            git clone --depth=1 https://android.googlesource.com/kernel/common -b $(git ls-remote --sort=-version:refname --tags https://android.googlesource.com/kernel/common android12-5.10-20\* | awk -F'/' 'NR==1 {sub(/\^{.*}/, "", $NF); print $NF}')
-            mv ../0001-aosp-kernel-build-fix.patch common/
-            cd common
-            git am 0001-aosp-kernel-build-fix.patch
+          elif [[ ${{ inputs.kernel_source_url }} == fork-melt-fix ]]; then
+            git clone --depth=1 https://github.com/FlyLoongZ/android_kernel_xiaomi_marble common
           else
             exit 1
           fi
@@ -172,11 +169,7 @@ jobs:
           git config --global user.name build-user
           cd ..
 
-          if [[ ${{ inputs.kernel_source_url }} == aosp-android12-5.10 ]]; then
-            LTO=thin BUILD_CONFIG=common/build.config.gki.aarch64 BUILD_NUMBER=$(cd common && git tag -n4 | awk -F'/' '/submitted/ {print $6}') build/build.sh -j4
-          else
-            LTO=thin BUILD_CONFIG=common/build.config.gki.aarch64 BUILD_NUMBER=${{ inputs.BUILD_NUMBER }} build/build.sh -j4
-          fi
+          LTO=thin BUILD_CONFIG=common/build.config.gki.aarch64 BUILD_NUMBER=${{ inputs.BUILD_NUMBER }} build/build.sh -j4
 
       - name: Add Apatch
         if: ${{ inputs.ap_patch }}
@@ -231,8 +224,6 @@ jobs:
           echo "Kernel Version: ${{ steps.set-env-kernel-version.outputs.KERNEL_VERSION }}" >> release.txt
           echo "Kernel Source: $(cd android_build/common && git remote -v | awk '/https/ {print $2; exit}')" >> release.txt
           if [[ ${{ inputs.kernel_source_url }} == melt-release ]]; then
-            echo "Kernel Source Tag: $(cd android_build/common && git tag)" >> release.txt
-          elif [[ ${{ inputs.kernel_source_url }} == aosp-android12-5.10 ]]; then
             echo "Kernel Source Tag: $(cd android_build/common && git tag)" >> release.txt
           else
             echo "Kernel Source Branch: $(cd android_build/common && git branch --show-current)" >> release.txt
