@@ -1,4 +1,4 @@
-##kernel_build_scripts
+## kernel_build_scripts
 Build Android Gki kernel
 
 ### Credits
