@@ -220,7 +220,7 @@ jobs:
             echo "KernelSU Version: $KernelSU_version" >> release.txt
             if [[ ${{ env.susfs4ksu_patch }} == true ]]; then
               echo "susfs4ksu: ✔️" >> release.txt
-              echo "susfs4ksu Version: $(cat android_build/common/include/linux/susfs.h | grep -E '^#define SUSFS_VERSION' | cut -d' ' -f3 | sed 's/"//g')"
+              echo "susfs4ksu Version: $(cat android_build/common/include/linux/susfs.h | grep -E '^#define SUSFS_VERSION' | cut -d' ' -f3 | sed 's/"//g')" >> release.txt
             fi
           fi
 
