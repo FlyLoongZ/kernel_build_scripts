@@ -15,7 +15,7 @@ on:
 
       BUILD_NUMBER:
         description: 'ci.android.com build number'
-        required: ture
+        required: true
         type: string
 
       ksu_patch:
