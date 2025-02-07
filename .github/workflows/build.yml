@@ -76,11 +76,19 @@ jobs:
           ~/.bin/repo init -q -u https://github.com/FlyLoongZ/kernel_build_scripts -b repo_manifest
           ~/.bin/repo sync
 
+          echo "=== Clone android llvm ==="
           mkdir -p prebuilts-master/clang/host/linux-x86
-          git clone --filter=blob:none --sparse https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86 tmp-clone
-          cd tmp-clone
-          git sparse-checkout add clang-r547379
-          mv clang-r547379 ../prebuilts-master/clang/host/linux-x86/clang-r416183b
+          cd prebuilts-master/clang/host/linux-x86
+          git init
+          git remote add origin https://https://mirrors.ustc.edu.cn/aosp/platform/prebuilts/clang/host/linux-x86.git
+          if [[ ${{ inputs.kernel_source }} == lineageos_xiaomi_sm8450 ]]; then
+            git sparse-checkout set clang-r416183b
+            git pull --depth=1 origin master-kernel-build-2021
+          else
+            git sparse-checkout set clang-r547379
+            git pull --depth=1 origin main
+            mv clang-r547379 clang-r416183b
+          fi
 
       - name: Clone Kernel source
         run: |
