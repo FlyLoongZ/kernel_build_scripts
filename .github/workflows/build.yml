@@ -95,7 +95,7 @@ jobs:
             mv ../0001-lineageos_xiaomi_sm8450-build-fix.patch common/
             cd common
             git am 0001-lineageos_xiaomi_sm8450-build-fix.patch
-          elif [[ ${{ inputs.kernel_source }} == fork_melt_fix ]]; then
+          elif [[ ${{ inputs.kernel_source }} == fork_melt ]]; then
             git clone --depth=1 https://github.com/FlyLoongZ/android_kernel_xiaomi_marble.git common
           else
             exit 1
