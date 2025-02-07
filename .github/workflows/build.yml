@@ -3,15 +3,14 @@ name: Build Android GKI Kernel
 on:
   workflow_dispatch:
     inputs:
-      kernel_source_url:
-        description: 'Choose Kernel source url'
+      kernel_source:
+        description: 'Choose Kernel source'
         required: true
         type: choice
         options:
-          - ztc1997-5.10
-          - melt-release
-          - melt-latest
-          - fork-melt-fix
+          - gki_kernel@ztc1997
+          - lineageos_xiaomi_sm8450
+          - fork_melt
 
       BUILD_NUMBER:
         description: 'ci.android.com build number'
@@ -38,7 +37,7 @@ on:
         type: boolean
 
       ccache_set:
-        description: 'Enable CCache'
+        description: 'Enable Ccache'
         required: false
         type: boolean
 
@@ -53,17 +52,17 @@ jobs:
       - name: checkout source
         uses: actions/checkout@v4
 
-      - name: Setup CCache
+      - name: Setup Ccache
         if: ${{ inputs.ccache_set }}
         uses: hendrikmuhs/ccache-action@v1.2
         with:
           max-size: 5G          
         
-      - name: Set Build Date
+      - name: Set build date
         id: set-env-date
         run: echo "BUILDDATE=$(date +'%Y%m%d')" >> $GITHUB_OUTPUT
       
-      - name: Clone Build Tool
+      - name: Clone build tool
         run: |
           mkdir -p ~/.bin
           PATH="${HOME}/.bin:${PATH}"
@@ -83,33 +82,23 @@ jobs:
           git sparse-checkout add clang-r547379
           mv clang-r547379 ../prebuilts-master/clang/host/linux-x86/clang-r416183b
 
-      - name: Clone Kernel Source
+      - name: Clone Kernel source
         run: |
           cd android_build
-          if [[ ${{ inputs.kernel_source_url }} == ztc1997-5.10 ]]; then
-            git clone --depth=1 https://github.com/ztc1997/android_gki_kernel_5.10_common common
+          if [[ ${{ inputs.kernel_source }} == gki_kernel@ztc1997 ]]; then
+            git clone --depth=1 https://github.com/ztc1997/android_gki_kernel_5.10_common.git common
             mv ../0001-ztc1997-build-fix.patch common/
             cd common
             git am 0001-ztc1997-build-fix.patch
-          elif [[ ${{ inputs.kernel_source_url }} == melt-release ]]; then
-            git clone --depth=1 https://github.com/Pzqqt/android_kernel_xiaomi_marble common -b $(git ls-remote --sort=-version:refname --tags https://github.com/Pzqqt/android_kernel_xiaomi_marble Melt-marble-v\* | head -n 1 | awk -F'/' '{print $NF}')
-            mv ../0001-melt-build-fix.patch common/
-            cd common
-            git am 0001-melt-build-fix.patch
-            rm -r drivers/staging/kernelsu
-          elif [[ ${{ inputs.kernel_source_url }} == melt-latest ]]; then
-            git clone --depth=1 https://github.com/Pzqqt/android_kernel_xiaomi_marble common
-            mv ../0001-melt-build-fix.patch common/
-            cd common
-            git am 0001-melt-build-fix.patch
-            rm -r drivers/staging/kernelsu
-          elif [[ ${{ inputs.kernel_source_url }} == fork-melt-fix ]]; then
-            git clone --depth=1 https://github.com/FlyLoongZ/android_kernel_xiaomi_marble common
+          elif [[ ${{ inputs.kernel_source }} == lineageos_xiaomi_sm8450 ]]; then
+            git clone --depth=1 https://github.com/cupid-development/android_kernel_xiaomi_sm8450.git common
+          elif [[ ${{ inputs.kernel_source }} == fork_melt_fix ]]; then
+            git clone --depth=1 https://github.com/FlyLoongZ/android_kernel_xiaomi_marble.git common
           else
             exit 1
           fi
 
-      - name: Add KernelSU Release
+      - name: Add KernelSU release
         if: contains(inputs.ksu_patch, 'release')
         run: | 
           cd android_build/common
@@ -117,7 +106,7 @@ jobs:
           cd KernelSU
           echo "KernelSU_version=$(expr 10200 + $(git rev-list --count HEAD))"  >> "$GITHUB_ENV"
 
-      - name: Add KerenlSU Dev
+      - name: Add KerenlSU dev
         if: contains(inputs.ksu_patch, 'dev')
         run: |
           cd android_build/common
@@ -145,7 +134,7 @@ jobs:
             patch -p1 < 50_add_susfs_in_gki-android12-5.10.patch
           fi
 
-      - name: Set CCache Env
+      - name: Set Ccache env
         if: ${{ inputs.ccache_set }}
         run: |
           cd android_build
@@ -156,12 +145,12 @@ jobs:
       - name: Build Kernel
         env: 
           ccache_set: ${{ inputs.ccache_set }}
-          choice_kernel: ${{ inputs.kernel_source_url }}
+          choice_kernel: ${{ inputs.kernel_source }}
         run: |
           if [[ ${{ env.ccache_set }} == true ]]; then
             export 'CCACHE_LOCAL_PATH=.bin'
           else
-            echo 'No add CCache'
+            echo 'No add Ccache'
           fi
 
           cd android_build/common
@@ -185,24 +174,24 @@ jobs:
           chmod +x kptools-linux
           ./kptools-linux -p --image ../Image-old --skey "$ap_key" --kpimg kpimg-android --out ../Image
           
-      - name: Read Kernel Version
+      - name: Read Kernel version
         id: set-env-kernel-version
         run: echo "KERNEL_VERSION=$(awk -F'"' '{print $2}' android_build/out/android12-5.10/common/include/generated/utsrelease.h)" >> $GITHUB_OUTPUT
 
-      - name: Upload Image
+      - name: Upload image
         uses: actions/upload-artifact@v4
         with:
           name: "Image-${{ steps.set-env-kernel-version.outputs.KERNEL_VERSION }}"
           path: android_build/out/android12-5.10/dist/Image
       
-      - name: Package Kerenl
+      - name: Package kerenl
         run: |
           git clone --depth=1 https://github.com/FlyLoongZ/AnyKernel3
           cp android_build/out/android12-5.10/dist/Image AnyKernel3/Image
           cd AnyKernel3
           zip -r9 "Anykernel3-${{ steps.set-env-kernel-version.outputs.KERNEL_VERSION }}.zip" * -x .git README.md
       
-      - name: Create Release Text
+      - name: Create release text
         env: 
           ksu_patch: ${{ inputs.ksu_patch }}
           ap_patch: ${{ inputs.ap_patch }}
@@ -223,14 +212,10 @@ jobs:
 
           echo "Kernel Version: ${{ steps.set-env-kernel-version.outputs.KERNEL_VERSION }}" >> release.txt
           echo "Kernel Source: $(cd android_build/common && git remote -v | awk '/https/ {print $2; exit}')" >> release.txt
-          if [[ ${{ inputs.kernel_source_url }} == melt-release ]]; then
-            echo "Kernel Source Tag: $(cd android_build/common && git tag)" >> release.txt
-          else
-            echo "Kernel Source Branch: $(cd android_build/common && git branch --show-current)" >> release.txt
-          fi
+          echo "Kernel Source Branch: $(cd android_build/common && git branch --show-current)" >> release.txt
           echo "Kernel Source Commit: $(cd android_build/common && git rev-parse --short HEAD)" >> release.txt
       
-      - name: Create GitHub Release
+      - name: Create github release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ steps.set-env-date.outputs.BUILDDATE }}.${{ github.run_number }}
