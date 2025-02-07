@@ -80,11 +80,13 @@ jobs:
           mkdir -p prebuilts-master/clang/host/linux-x86
           cd prebuilts-master/clang/host/linux-x86
           git init
-          git remote add origin https://mirrors.ustc.edu.cn/aosp/platform/prebuilts/clang/host/linux-x86.git
+          git remote add origin https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86.git
           if [[ ${{ inputs.kernel_source }} == lineageos_xiaomi_sm8450 ]]; then
+            echo "=== Choose clang-r416183b ==="
             git sparse-checkout set clang-r416183b
             git pull --depth=1 origin master-kernel-build-2021
           else
+            echo "=== Choose clang-r547379 ==="
             git sparse-checkout set clang-r547379
             git pull --depth=1 origin main
             mv clang-r547379 clang-r416183b
@@ -94,16 +96,19 @@ jobs:
         run: |
           cd android_build
           if [[ ${{ inputs.kernel_source }} == gki_kernel@ztc1997 ]]; then
+            echo "=== Choose gki_kernel@ztc1997 source ==="
             git clone --depth=1 https://github.com/ztc1997/android_gki_kernel_5.10_common.git common
             mv ../0001-ztc1997-build-fix.patch common/
             cd common
             git am 0001-ztc1997-build-fix.patch
           elif [[ ${{ inputs.kernel_source }} == lineageos_xiaomi_sm8450 ]]; then
+            echo "=== Choose lineageos_xiaomi_sm8450 source ==="
             git clone --depth=1 https://github.com/cupid-development/android_kernel_xiaomi_sm8450.git common
             mv ../0001-lineageos_xiaomi_sm8450-build-fix.patch common/
             cd common
             git am 0001-lineageos_xiaomi_sm8450-build-fix.patch
           elif [[ ${{ inputs.kernel_source }} == fork_melt ]]; then
+            echo "=== Choose fork_melt source ==="
             git clone --depth=1 https://github.com/FlyLoongZ/android_kernel_xiaomi_marble.git common
           else
             exit 1
@@ -122,8 +127,6 @@ jobs:
         run: |
           cd android_build/common
           curl -LSs "https://raw.githubusercontent.com/tiann/KernelSU/main/kernel/setup.sh" | bash -s main
-          cd KernelSU
-          echo "KernelSU_version=$(expr 10200 + $(git rev-list --count HEAD))"  >> "$GITHUB_ENV"
 
       - name: Add susfs4ksu patch
         if: ${{ inputs.susfs4ksu_patch }}
@@ -131,7 +134,7 @@ jobs:
           ksu_patch_set: ${{ inputs.ksu_patch }}
         run: |
           if [[ ${{ env.ksu_patch_set }} == none ]]; then
-            echo "ksu patch no enable"
+            echo "!!! KernelSU patch no enable !!!"
           else
             git clone https://gitlab.com/simonpunk/susfs4ksu.git -b gki-android12-5.10
             cp susfs4ksu/kernel_patches/KernelSU/10_enable_susfs_for_ksu.patch android_build/common/KernelSU/
@@ -159,9 +162,9 @@ jobs:
           choice_kernel: ${{ inputs.kernel_source }}
         run: |
           if [[ ${{ env.ccache_set }} == true ]]; then
-            export 'CCACHE_LOCAL_PATH=.bin'
+            export "CCACHE_LOCAL_PATH=.bin"
           else
-            echo 'No add Ccache'
+            echo "=== No add Ccache ==="
           fi
 
           cd android_build/common
@@ -210,7 +213,7 @@ jobs:
         run: |
           if [[ ${{ env.ksu_patch }} != none ]]; then
             echo "KernelSU: ✔️" >> release.txt
-            echo "KernelSU Version: $KernelSU_version" >> release.txt
+            echo "KernelSU Version: $(cd android_build/common/KerenlSU && expr 10200 + $(git rev-list --count HEAD))" >> release.txt
             if [[ ${{ env.susfs4ksu_patch }} == true ]]; then
               echo "susfs4ksu: ✔️" >> release.txt
               echo "susfs4ksu Version: $(cat android_build/common/include/linux/susfs.h | grep -E '^#define SUSFS_VERSION' | cut -d' ' -f3 | sed 's/"//g')" >> release.txt
