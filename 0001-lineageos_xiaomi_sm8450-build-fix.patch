@@ -1,11 +1,12 @@
-From 6b1615bb5defc85b72cbc72f72df3ebaad6af568 Mon Sep 17 00:00:00 2001
+From e27d98c57e4a35c74ea2cb721b52542ed61cda52 Mon Sep 17 00:00:00 2001
 From: FlyLoongZ <60963681+FlyLoongZ@users.noreply.github.com>
-Date: Sat, 8 Feb 2025 01:42:43 +0800
+Date: Sat, 8 Feb 2025 03:26:47 +0800
 Subject: [PATCH] lineageos_xiaomi_sm8450 build fix
 
 ---
- android/gki_aarch64_modules | 1 +
- 1 file changed, 1 insertion(+)
+ android/gki_aarch64_modules |  1 +
+ scripts/setlocalversion     | 22 +++++++++++-----------
+ 2 files changed, 12 insertions(+), 11 deletions(-)
 
 diff --git a/android/gki_aarch64_modules b/android/gki_aarch64_modules
 index e69de29bb2d..2a1b69f651b 100644
@@ -13,6 +14,50 @@ index e69de29bb2d..2a1b69f651b 100644
 +++ b/android/gki_aarch64_modules
 @@ -0,0 +1 @@
 +drivers/soc/qcom/sync_fence/qcom_sync_file.ko
+diff --git a/scripts/setlocalversion b/scripts/setlocalversion
+index 842936656b8..b0edce2722a 100755
+--- a/scripts/setlocalversion
++++ b/scripts/setlocalversion
+@@ -91,15 +91,15 @@ scm_version()
+ 			# --abbrev=12 ensures a minimum of 12, and the
+ 			# awk substr() then picks the 'g' and first 12
+ 			# hex chars.
+-			if atag="$(git describe --abbrev=12 2>/dev/null)"; then
+-				echo "$atag" | awk -F- '{printf("-%05d-%s", $(NF-1),substr($(NF),0,13))}'
++			#####if atag="$(git describe --abbrev=12 2>/dev/null)"; then
++			##	echo "$atag" | awk -F- '{printf("-%05d-%s", $(NF-1),substr($(NF),0,13))}'
+ 
+ 			# If we don't have a tag at all we print -g{commitish},
+ 			# again using exactly 12 hex chars.
+-			else
++			##else
+ 				head="$(echo $head | cut -c1-12)"
+-				printf '%s%s' -g $head
+-			fi
++				printf '%s%05d%s%s' - $(( ( $(od -An -N1 -tu1 < /dev/urandom) % 113 ) + 16 )) -g $head
++			#####fi
+ 		fi
+ 
+ 		# Is this git on svn?
+@@ -113,12 +113,12 @@ scm_version()
+ 		# it fails. Note that git-diff-index does not refresh the
+ 		# index, so it may give misleading results. See
+ 		# git-update-index(1), git-diff-index(1), and git-status(1).
+-		if {
+-			git --no-optional-locks status -uno --porcelain 2>/dev/null ||
+-			git diff-index --name-only HEAD
+-		} | grep -qvE '^(.. )?scripts/package'; then
+-			printf '%s' -dirty
+-		fi
++		#####if {
++		##	git --no-optional-locks status -uno --porcelain 2>/dev/null ||
++		##	git diff-index --name-only HEAD
++		##} | grep -qvE '^(.. )?scripts/package'; then
++		##	printf '%s' -dirty
++		#####fi
+ 
+ 		# All done with git
+ 		return
 -- 
 2.48.1
 
