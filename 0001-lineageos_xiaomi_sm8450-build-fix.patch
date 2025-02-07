@@ -1,0 +1,18 @@
+From 6b1615bb5defc85b72cbc72f72df3ebaad6af568 Mon Sep 17 00:00:00 2001
+From: FlyLoongZ <60963681+FlyLoongZ@users.noreply.github.com>
+Date: Sat, 8 Feb 2025 01:42:43 +0800
+Subject: [PATCH] lineageos_xiaomi_sm8450 build fix
+
+---
+ android/gki_aarch64_modules | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/android/gki_aarch64_modules b/android/gki_aarch64_modules
+index e69de29bb2d..2a1b69f651b 100644
+--- a/android/gki_aarch64_modules
++++ b/android/gki_aarch64_modules
+@@ -0,0 +1 @@
++drivers/soc/qcom/sync_fence/qcom_sync_file.ko
+-- 
+2.48.1
+
