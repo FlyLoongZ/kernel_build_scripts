@@ -80,7 +80,7 @@ jobs:
           mkdir -p prebuilts-master/clang/host/linux-x86
           cd prebuilts-master/clang/host/linux-x86
           git init
-          git remote add origin https://https://mirrors.ustc.edu.cn/aosp/platform/prebuilts/clang/host/linux-x86.git
+          git remote add origin https://mirrors.ustc.edu.cn/aosp/platform/prebuilts/clang/host/linux-x86.git
           if [[ ${{ inputs.kernel_source }} == lineageos_xiaomi_sm8450 ]]; then
             git sparse-checkout set clang-r416183b
             git pull --depth=1 origin master-kernel-build-2021
