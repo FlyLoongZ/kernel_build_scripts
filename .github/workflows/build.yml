@@ -213,7 +213,7 @@ jobs:
         run: |
           if [[ ${{ env.ksu_patch }} != none ]]; then
             echo "KernelSU: ✔️" >> release.txt
-            echo "KernelSU Version: $(cd android_build/common/KerenlSU && expr 10200 + $(git rev-list --count HEAD))" >> release.txt
+            echo "KernelSU Version: $(cd android_build/common/KernelSU && expr 10200 + $(git rev-list --count HEAD))" >> release.txt
             if [[ ${{ env.susfs4ksu_patch }} == true ]]; then
               echo "susfs4ksu: ✔️" >> release.txt
               echo "susfs4ksu Version: $(cat android_build/common/include/linux/susfs.h | grep -E '^#define SUSFS_VERSION' | cut -d' ' -f3 | sed 's/"//g')" >> release.txt
