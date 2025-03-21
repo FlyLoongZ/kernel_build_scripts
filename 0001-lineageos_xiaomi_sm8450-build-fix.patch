@@ -1,12 +1,13 @@
-From e27d98c57e4a35c74ea2cb721b52542ed61cda52 Mon Sep 17 00:00:00 2001
+From fc6c287b9274a7c07d399251fbba09aea66e54ad Mon Sep 17 00:00:00 2001
 From: FlyLoongZ <60963681+FlyLoongZ@users.noreply.github.com>
-Date: Sat, 8 Feb 2025 03:26:47 +0800
+Date: Fri, 21 Mar 2025 21:30:55 +0800
 Subject: [PATCH] lineageos_xiaomi_sm8450 build fix
 
 ---
- android/gki_aarch64_modules |  1 +
- scripts/setlocalversion     | 22 +++++++++++-----------
- 2 files changed, 12 insertions(+), 11 deletions(-)
+ android/gki_aarch64_modules      |  1 +
+ arch/arm64/configs/gki_defconfig |  1 +
+ scripts/setlocalversion          | 22 +++++++++++-----------
+ 3 files changed, 13 insertions(+), 11 deletions(-)
 
 diff --git a/android/gki_aarch64_modules b/android/gki_aarch64_modules
 index e69de29bb2d..2a1b69f651b 100644
@@ -14,6 +15,18 @@ index e69de29bb2d..2a1b69f651b 100644
 +++ b/android/gki_aarch64_modules
 @@ -0,0 +1 @@
 +drivers/soc/qcom/sync_fence/qcom_sync_file.ko
+diff --git a/arch/arm64/configs/gki_defconfig b/arch/arm64/configs/gki_defconfig
+index c79d77da33b..2f92fbcfe46 100644
+--- a/arch/arm64/configs/gki_defconfig
++++ b/arch/arm64/configs/gki_defconfig
+@@ -226,6 +226,7 @@ CONFIG_IP6_NF_FILTER=y
+ CONFIG_IP6_NF_TARGET_REJECT=y
+ CONFIG_IP6_NF_MANGLE=y
+ CONFIG_IP6_NF_RAW=y
++CONFIG_IP6_NF_NAT=y
+ CONFIG_TIPC=y
+ CONFIG_L2TP=y
+ CONFIG_BRIDGE=y
 diff --git a/scripts/setlocalversion b/scripts/setlocalversion
 index 842936656b8..b0edce2722a 100755
 --- a/scripts/setlocalversion
@@ -59,5 +72,5 @@ index 842936656b8..b0edce2722a 100755
  		# All done with git
  		return
 -- 
-2.48.1
+2.49.0
 
