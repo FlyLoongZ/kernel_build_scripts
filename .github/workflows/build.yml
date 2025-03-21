@@ -80,8 +80,8 @@ jobs:
           mkdir -p prebuilts-master/clang/host/linux-x86
           cd prebuilts-master/clang/host/linux-x86
           if [[ ${{ inputs.kernel_source }} == lineageos_xiaomi_sm8450 ]]; then
-            echo "- Choose clang-r530567"
-            git clone https://gitlab.com/crdroidandroid/android_prebuilts_clang_host_linux-x86_clang-r530567 clang-r416183b
+            echo "- Choose clang-r416183b1"
+            git clone https://github.com/crdroidandroid/android_prebuilts_clang_host_linux-x86_clang-r416183b1 clang-r416183b
           else
             echo "- Choose clang-r547379"
             git clone https://gitlab.com/crdroidandroid/android_prebuilts_clang_host_linux-x86_clang-r547379 clang-r416183b
