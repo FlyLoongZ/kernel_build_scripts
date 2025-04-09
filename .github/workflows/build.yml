@@ -256,7 +256,8 @@ jobs:
 
       - name: Upload melt model
         if: contains(inputs.kernel_source, 'fork-melt')
-        uses: actions/upload-artifact@v4                                      with:
+        uses: actions/upload-artifact@v4 
+        with:
           name: "Melt_model-${{ steps.set-env-kernel-version.outputs.KERNEL_VERSION }}"
           path: android_build_kernel/Anykernel3/tmp_down/kernel_ko
 
