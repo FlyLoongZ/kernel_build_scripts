@@ -64,17 +64,22 @@ jobs:
       
       - name: Clone build tool
         run: |
-          mkdir -p ~/.bin
-          PATH="${HOME}/.bin:${PATH}"
-          curl https://storage.googleapis.com/git-repo-downloads/repo > ~/.bin/repo
-          chmod a+rx ~/.bin/repo
+          if [[ ${{ inputs.kernel_source }} == fork_melt ]]; then
+            mkdir android_build_kernel
+            cd android_build_kernel
+          else
+            mkdir -p ~/.bin
+            PATH="${HOME}/.bin:${PATH}"
+            curl https://storage.googleapis.com/git-repo-downloads/repo > ~/.bin/repo
+            chmod a+rx ~/.bin/repo
 
-          mkdir android_build
-          cd android_build
-          git config --global user.email build-user@build-host
-          git config --global user.name build-user
-          ~/.bin/repo init -q -u https://github.com/FlyLoongZ/kernel_build_scripts -b repo_manifest
-          ~/.bin/repo sync
+            mkdir android_build_kernel
+            cd android_build_kernel
+            git config --global user.email build-user@build-host
+            git config --global user.name build-user
+            ~/.bin/repo init -q -u https://github.com/FlyLoongZ/kernel_build_scripts -b repo_manifest
+            ~/.bin/repo sync
+          fi
 
           echo "=== Clone android llvm ==="
           mkdir -p prebuilts-master/clang/host/linux-x86
@@ -89,7 +94,7 @@ jobs:
 
       - name: Clone Kernel source
         run: |
-          cd android_build
+          cd android_build_kernel
           if [[ ${{ inputs.kernel_source }} == gki_kernel@ztc1997 ]]; then
             echo "=== Choose gki_kernel@ztc1997 source ==="
             git clone --depth=1 https://github.com/ztc1997/android_gki_kernel_5.10_common.git common
@@ -112,7 +117,7 @@ jobs:
       - name: Add KernelSU release
         if: contains(inputs.ksu_patch, 'release')
         run: | 
-          cd android_build/common
+          cd android_build_kernel/common
           curl -LSs "https://raw.githubusercontent.com/tiann/KernelSU/main/kernel/setup.sh" | bash -
           cd KernelSU
           echo "KernelSU_version=$(expr 10200 + $(git rev-list --count HEAD))"  >> "$GITHUB_ENV"
@@ -120,7 +125,7 @@ jobs:
       - name: Add KerenlSU dev
         if: contains(inputs.ksu_patch, 'dev')
         run: |
-          cd android_build/common
+          cd android_build_kernel/common
           curl -LSs "https://raw.githubusercontent.com/tiann/KernelSU/main/kernel/setup.sh" | bash -s main
 
       - name: Add susfs4ksu patch
@@ -132,12 +137,12 @@ jobs:
             echo "!!! KernelSU patch no enable !!!"
           else
             git clone https://gitlab.com/simonpunk/susfs4ksu.git -b gki-android12-5.10
-            cp susfs4ksu/kernel_patches/KernelSU/10_enable_susfs_for_ksu.patch android_build/common/KernelSU/
-            cp susfs4ksu/kernel_patches/50_add_susfs_in_gki-android12-5.10.patch android_build/common/
-            cp susfs4ksu/kernel_patches/fs/* android_build/common/fs/
-            cp susfs4ksu/kernel_patches/include/linux/* android_build/common/include/linux/
+            cp susfs4ksu/kernel_patches/KernelSU/10_enable_susfs_for_ksu.patch android_build_kernel/common/KernelSU/
+            cp susfs4ksu/kernel_patches/50_add_susfs_in_gki-android12-5.10.patch android_build_kernel/common/
+            cp susfs4ksu/kernel_patches/fs/* android_build_kernel/common/fs/
+            cp susfs4ksu/kernel_patches/include/linux/* android_build_kernel/common/include/linux/
 
-            cd android_build/common/KernelSU
+            cd android_build_kernel/common/KernelSU
             patch -p1 < 10_enable_susfs_for_ksu.patch
             cd ..
             patch -p1 < 50_add_susfs_in_gki-android12-5.10.patch
@@ -146,7 +151,7 @@ jobs:
       - name: Set Ccache env
         if: ${{ inputs.ccache_set }}
         run: |
-          cd android_build
+          cd android_build_kernel
           mkdir .bin
           cd .bin
           ln -s /usr/bin/ccache clang
@@ -162,19 +167,31 @@ jobs:
             echo "=== No add Ccache ==="
           fi
 
-          cd android_build/common
+          cd android_build_kernel/common
           git config --global user.email build-user@build-host
           git config --global user.name build-user
           cd ..
 
-          LTO=thin BUILD_CONFIG=common/build.config.gki.aarch64 BUILD_NUMBER=${{ inputs.BUILD_NUMBER }} build/build.sh -j4
+          if [[ ${{ inputs.kernel_source }} == fork_melt ]]; then
+            cd common
+            if [[ ${{ env.ccache_set }} == true ]]; then
+              export PATH=../.bin:../prebuilts-master/clang/host/linux-x86/clang-r416183b/bin:$PATH
+            else
+              export PATH=../prebuilts-master/clang/host/linux-x86/clang-r416183b/bin:$PATH
+            fi
+            make ARCH=arm64 LLVM=1 LLVM_IAS=1 O=../out/android12-5.10/common mrproper
+            make ARCH=arm64 LLVM=1 LLVM_IAS=1 O=../out/android12-5.10/common marble_defconfig
+            make ARCH=arm64 LLVM=1 LLVM_IAS=1 O=../out/android12-5.10/common -j$(nproc --all)
+          else
+            LTO=thin BUILD_CONFIG=common/build.config.gki.aarch64 BUILD_NUMBER=${{ inputs.BUILD_NUMBER }} build/build.sh -j4
+          fi
 
       - name: Add Apatch
         if: ${{ inputs.ap_patch }}
         env:
           ap_key: ${{ secrets.Apatch_Key }}
         run: |
-          cd android_build/out/android12-5.10/dist
+          cd android_build_kernel/out/android12-5.10/common/arch/arm64/boot
           mkdir apatch
           cd apatch
           wget -q https://github.com/bmax121/KernelPatch/releases/latest/download/kptools-linux
@@ -185,21 +202,64 @@ jobs:
           
       - name: Read Kernel version
         id: set-env-kernel-version
-        run: echo "KERNEL_VERSION=$(awk -F'"' '{print $2}' android_build/out/android12-5.10/common/include/generated/utsrelease.h)" >> $GITHUB_OUTPUT
+        run: echo "KERNEL_VERSION=$(awk -F'"' '{print $2}' android_build_kernel/out/android12-5.10/common/include/generated/utsrelease.h)" >> $GITHUB_OUTPUT
 
       - name: Upload image
         uses: actions/upload-artifact@v4
         with:
           name: "Image-${{ steps.set-env-kernel-version.outputs.KERNEL_VERSION }}"
-          path: android_build/out/android12-5.10/dist/Image
+          path: android_build_kernel/out/android12-5.10/common/arch/arm64/boot/Image
       
       - name: Package kerenl
         run: |
-          git clone --depth=1 https://github.com/FlyLoongZ/AnyKernel3
-          cp android_build/out/android12-5.10/dist/Image AnyKernel3/Image
-          cd AnyKernel3
-          zip -r9 "Anykernel3-${{ steps.set-env-kernel-version.outputs.KERNEL_VERSION }}.zip" * -x .git README.md
-      
+          if [[ ${{ inputs.kernel_source }} == fork_melt ]]; then
+            export PATH=../prebuilts-master/clang/host/linux-x86/clang-r416183b/bin:$PATH
+            git clone --depth=1 https://github.com/FlyLoongZ/AnyKernel3 -b Marble-Melt
+            cp android_build_kernel/out/android12-5.10/common/arch/arm64/boot/Image AnyKernel3/Image
+            cd AnyKernel3
+
+            mkdir tmp_down
+            cd tmp_down
+            wget -q https://github.com/Pzqqt/android_kernel_xiaomi_marble/releases/latest/download/$(git ls-remote --sort=-version:refname --tags https://github.com/Pzqqt/ android_kernel_xiaomi_marble Melt-marble-v\* | head -n 1 | awk -F'/' '{print $NF}')-multi.zip
+            unzip Melt-marble-v*-multi.zip
+            7z x _modules_hyperos.7z -o_modules_hyperos
+            ls _modules_hyperos/_vendor_boot_modules > boot.txt
+            ls _modules_hyperos/_vendor_dlkm_modules > dlkm.txt
+            mkdir kernel_ko
+            find ../../android_build_kernel/out/android12-5.10/common -name "*.ko" -exec cp {} kernel_ko/
+            ls kernel_ko > ko.txt
+            comm -12 boot.txt ko.txt > ko_boot.txt
+            comm -12 dlkm.txt ko.txt > ko_dlkm.txt
+            for file in kernel_ko/*.ko; do
+              llvm-objcopy --strip-debug "$file"
+            done
+            while read line
+            do
+              cp kernel_ko/$line _modules_hyperos/_vendor_boot_modules/
+            done < ko_boot.txt
+            while read line
+            do
+              cp kernel_ko/$line _modules_hyperos/_vendor_boot_modules/
+            done < ko_dlkm.txt
+            rm _modules_hyperos.7z
+            cd _modules_hyperos
+            7z a _modules_hyperos.7z ./*
+            mv _modules_hyperos.7z ../../_modules_hyperos.7z
+            cd ../../
+            zip -r9 "Anykernel3-${{ steps.set-env-kernel-version.outputs.KERNEL_VERSION }}.zip" * -x .git README.md tmp_down 
+          else
+            git clone --depth=1 https://github.com/FlyLoongZ/AnyKernel3
+            cp android_build_kernel/out/android12-5.10/common/arch/arm64/boot/Image AnyKernel3/Image
+            cd AnyKernel3
+            zip -r9 "Anykernel3-${{ steps.set-env-kernel-version.outputs.KERNEL_VERSION }}.zip" * -x .git README.md
+          fi
+
+      - name: Upload melt model
+        if: contains(inputs.kernel_source, 'fork-melt')
+        uses: actions/upload-artifact@v4                                      with:
+          name: "Melt_model-${{ steps.set-env-kernel-version.outputs.KERNEL_VERSION }}"
+          path: android_build_kernel/Anykernel3/tmp_down/kernel_ko
+
       - name: Create release text
         env: 
           ksu_patch: ${{ inputs.ksu_patch }}
@@ -208,10 +268,10 @@ jobs:
         run: |
           if [[ ${{ env.ksu_patch }} != none ]]; then
             echo "KernelSU: ✔️" >> release.txt
-            echo "KernelSU Version: $(cd android_build/common/KernelSU && expr 10200 + $(git rev-list --count HEAD))" >> release.txt
+            echo "KernelSU Version: $(cd android_build_kernel/common/KernelSU && expr 10200 + $(git rev-list --count HEAD))" >> release.txt
             if [[ ${{ env.susfs4ksu_patch }} == true ]]; then
               echo "susfs4ksu: ✔️" >> release.txt
-              echo "susfs4ksu Version: $(cat android_build/common/include/linux/susfs.h | grep -E '^#define SUSFS_VERSION' | cut -d' ' -f3 | sed 's/"//g')" >> release.txt
+              echo "susfs4ksu Version: $(cat android_build_kernel/common/include/linux/susfs.h | grep -E '^#define SUSFS_VERSION' | cut -d' ' -f3 | sed 's/"//g')" >> release.txt
             fi
           fi
 
@@ -220,9 +280,9 @@ jobs:
           fi
 
           echo "Kernel Version: ${{ steps.set-env-kernel-version.outputs.KERNEL_VERSION }}" >> release.txt
-          echo "Kernel Source: $(cd android_build/common && git remote -v | awk '/https/ {print $2; exit}')" >> release.txt
-          echo "Kernel Source Branch: $(cd android_build/common && git branch --show-current)" >> release.txt
-          echo "Kernel Source Commit: $(cd android_build/common && git rev-parse --short HEAD)" >> release.txt
+          echo "Kernel Source: $(cd android_build_kernel/common && git remote -v | awk '/https/ {print $2; exit}')" >> release.txt
+          echo "Kernel Source Branch: $(cd android_build_kernel/common && git branch --show-current)" >> release.txt
+          echo "Kernel Source Commit: $(cd android_build_kernel/common && git rev-parse --short HEAD)" >> release.txt
       
       - name: Create github release
         uses: softprops/action-gh-release@v2
