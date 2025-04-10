@@ -222,7 +222,7 @@ jobs:
 
             mkdir tmp_down
             cd tmp_down
-            wget -q https://github.com/Pzqqt/android_kernel_xiaomi_marble/releases/latest/download/$(git ls-remote --sort=-version:refname --tags https://github.com/Pzqqt/ android_kernel_xiaomi_marble Melt-marble-v\* | head -n 1 | awk -F'/' '{print $NF}')-multi.zip
+            wget -q https://github.com/Pzqqt/android_kernel_xiaomi_marble/releases/latest/download/$(git ls-remote --sort=-version:refname --tags https://github.com/Pzqqt/android_kernel_xiaomi_marble Melt-marble-v\* | head -n 1 | awk -F'/' '{print $NF}')-multi.zip
             unzip Melt-marble-v*-multi.zip
             7z x _modules_hyperos.7z -o_modules_hyperos
             ls _modules_hyperos/_vendor_boot_modules > boot.txt
@@ -232,17 +232,21 @@ jobs:
             ls kernel_ko > ko.txt
             comm -12 boot.txt ko.txt > ko_boot.txt
             comm -12 dlkm.txt ko.txt > ko_dlkm.txt
+
             for file in kernel_ko/*.ko; do
               llvm-objcopy --strip-debug "$file"
             done
+
             while read line
             do
               cp kernel_ko/$line _modules_hyperos/_vendor_boot_modules/
             done < ko_boot.txt
+
             while read line
             do
               cp kernel_ko/$line _modules_hyperos/_vendor_boot_modules/
             done < ko_dlkm.txt
+
             rm _modules_hyperos.7z
             cd _modules_hyperos
             7z a _modules_hyperos.7z ./*
