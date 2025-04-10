@@ -228,7 +228,7 @@ jobs:
             ls _modules_hyperos/_vendor_boot_modules > boot.txt
             ls _modules_hyperos/_vendor_dlkm_modules > dlkm.txt
             mkdir kernel_ko
-            find ../../android_build_kernel/out/android12-5.10/common -name "*.ko" -exec cp {} kernel_ko/
+            find ../../android_build_kernel/out/android12-5.10/common -name "*.ko" -exec cp {} kernel_ko/ \;
             ls kernel_ko > ko.txt
             comm -12 boot.txt ko.txt > ko_boot.txt
             comm -12 dlkm.txt ko.txt > ko_dlkm.txt
