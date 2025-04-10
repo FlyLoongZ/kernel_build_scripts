@@ -181,9 +181,9 @@ jobs:
               export PATH=$(realpath ../prebuilts-master/clang/host/linux-x86/clang-r416183b/bin):$PATH
               clang -v
             fi
-            make ARCH=arm64 LLVM=1 LLVM_IAS=1 BUILD_NUMBER=${{ inputs.BUILD_NUMBER }} O=../out/android12-5.10/common mrproper
-            make ARCH=arm64 LLVM=1 LLVM_IAS=1 BUILD_NUMBER=${{ inputs.BUILD_NUMBER }} O=../out/android12-5.10/common marble_defconfig
-            make ARCH=arm64 LLVM=1 LLVM_IAS=1 BUILD_NUMBER=${{ inputs.BUILD_NUMBER }} O=../out/android12-5.10/common -j$(nproc --all)
+            make ARCH=arm64 LLVM=1 LLVM_IAS=1 BRANCH=android12-5.10 KMI_GENERATION=9 BUILD_NUMBER=${{ inputs.BUILD_NUMBER }} O=../out/android12-5.10/common mrproper
+            make ARCH=arm64 LLVM=1 LLVM_IAS=1 BRANCH=android12-5.10 KMI_GENERATION=9 BUILD_NUMBER=${{ inputs.BUILD_NUMBER }} O=../out/android12-5.10/common marble_defconfig
+            make ARCH=arm64 LLVM=1 LLVM_IAS=1 BRANCH=android12-5.10 KMI_GENERATION=9 BUILD_NUMBER=${{ inputs.BUILD_NUMBER }} O=../out/android12-5.10/common -j$(nproc --all)
           else
             LTO=thin BUILD_CONFIG=common/build.config.gki.aarch64 BUILD_NUMBER=${{ inputs.BUILD_NUMBER }} build/build.sh -j4
           fi
