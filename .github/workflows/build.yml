@@ -215,7 +215,7 @@ jobs:
       - name: Package kerenl
         run: |
           if [[ ${{ inputs.kernel_source }} == fork_melt ]]; then
-            export PATH=../prebuilts-master/clang/host/linux-x86/clang-r416183b/bin:$PATH
+            export PATH=$(realpath android_build_kernel/prebuilts-master/clang/host/linux-x86/clang-r416183b/bin):$PATH
             git clone --depth=1 https://github.com/FlyLoongZ/AnyKernel3 -b Marble-Melt
             cp android_build_kernel/out/android12-5.10/common/arch/arm64/boot/Image AnyKernel3/Image
             cd AnyKernel3
