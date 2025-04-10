@@ -175,9 +175,11 @@ jobs:
           if [[ ${{ inputs.kernel_source }} == fork_melt ]]; then
             cd common
             if [[ ${{ env.ccache_set }} == true ]]; then
-              export PATH=../.bin:../prebuilts-master/clang/host/linux-x86/clang-r416183b/bin:$PATH
+              export PATH=$(realpath ../.bin):$(realpath ../prebuilts-master/clang/host/linux-x86/clang-r416183b/bin):$PATH
+              clang -v
             else
-              export PATH=../prebuilts-master/clang/host/linux-x86/clang-r416183b/bin:$PATH
+              export PATH=$(realpath ../prebuilts-master/clang/host/linux-x86/clang-r416183b/bin):$PATH
+              clang -v
             fi
             make ARCH=arm64 LLVM=1 LLVM_IAS=1 BUILD_NUMBER=${{ inputs.BUILD_NUMBER }} O=../out/android12-5.10/common mrproper
             make ARCH=arm64 LLVM=1 LLVM_IAS=1 BUILD_NUMBER=${{ inputs.BUILD_NUMBER }} O=../out/android12-5.10/common marble_defconfig
