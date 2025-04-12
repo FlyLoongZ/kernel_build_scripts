@@ -23,8 +23,9 @@ on:
         type: choice
         options:
           - none
-          - release
-          - dev
+          - official_release
+          - official_dev
+          - mksu
 
       susfs4ksu_patch:
         description: 'Add susfs4ksu patch'
@@ -114,19 +115,25 @@ jobs:
             exit 1
           fi
 
-      - name: Add KernelSU release
-        if: contains(inputs.ksu_patch, 'release')
+      - name: Add the official KernelSU release
+        if: contains(inputs.ksu_patch, 'official_release')
         run: | 
           cd android_build_kernel/common
           curl -LSs "https://raw.githubusercontent.com/tiann/KernelSU/main/kernel/setup.sh" | bash -
           cd KernelSU
           echo "KernelSU_version=$(expr 10200 + $(git rev-list --count HEAD))"  >> "$GITHUB_ENV"
 
-      - name: Add KerenlSU dev
-        if: contains(inputs.ksu_patch, 'dev')
+      - name: Add the official KerenlSU dev
+        if: contains(inputs.ksu_patch, 'official_dev')
         run: |
           cd android_build_kernel/common
           curl -LSs "https://raw.githubusercontent.com/tiann/KernelSU/main/kernel/setup.sh" | bash -s main
+
+      - name: Add the 5ec1cff KernelSU
+        if: contains(inputs.ksu_patch, 'mksu')
+        run: |
+          cd android_build_kernel/common
+          curl -LSs "https://raw.githubusercontent.com/5ec1cff/KernelSU/main/kernel/setup.sh" | bash -s main
 
       - name: Add susfs4ksu patch
         if: ${{ inputs.susfs4ksu_patch }}
@@ -295,7 +302,7 @@ jobs:
           susfs4ksu_patch: ${{ inputs.susfs4ksu_patch }}
         run: |
           if [[ ${{ env.ksu_patch }} != none ]]; then
-            echo "KernelSU: ✔️" >> release.txt
+            echo "KernelSU: ✔️ (${{ env.ksu_patch }})" >> release.txt
             echo "KernelSU Version: $(cd android_build_kernel/common/KernelSU && expr 10200 + $(git rev-list --count HEAD))" >> release.txt
             if [[ ${{ env.susfs4ksu_patch }} == true ]]; then
               echo "susfs4ksu: ✔️" >> release.txt
