@@ -253,6 +253,8 @@ jobs:
             7z x _modules_miui.7z -o_modules_miui
             mkdir kernel_ko
             find ../../android_build_kernel/out/android12-5.10/common -name "*.ko" -exec cp {} kernel_ko/ \;
+            mv kernel_ko/qti_battery_charger.ko kernel_ko/qti_battery_charger_main.ko
+            mv kernel_ko/qca6490.ko kernel_ko/qca_cld3_qca6490.ko
             for file in kernel_ko/*.ko; do
               llvm-objcopy --strip-all-gnu "$file"
             done
