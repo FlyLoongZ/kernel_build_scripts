@@ -254,29 +254,32 @@ jobs:
             mkdir kernel_ko
             find ../../android_build_kernel/out/android12-5.10/common -name "*.ko" -exec cp {} kernel_ko/ \;
             for file in kernel_ko/*.ko; do
-              llvm-objcopy --strip-debug "$file"
+              llvm-objcopy --strip-all-gnu "$file"
             done
 
             while read line
             do
-              cp kernel_ko/$line _modules_hyperos/_vendor_boot_modules/
+              cp -f kernel_ko/$line _modules_hyperos/_vendor_boot_modules/
             done < ../../melt_hyperos_diff_boot.txt
 
             while read line
             do
-              cp kernel_ko/$line _modules_hyperos/_vendor_dlkm_modules/
+              cp -f kernel_ko/$line _modules_hyperos/_vendor_dlkm_modules/
             done < ../../melt_hyperos_diff_dlkm.txt
+
+            cp -f kernel_ko/ir-spi.ko _modules_hyperos/_alt/OSS-ir-spi.ko
+            cp -f lernel_ko/msm_drm.ko _modules_hyperos/_alt/OSS-msm_drm.ko
 
             ### TODO
             #while read line
             #do
-            #  cp kernel_ko/$line _modules_miui/_vendor_boot_modules/
+            #  cp -f kernel_ko/$line _modules_miui/_vendor_boot_modules/
             #done < ../../melt_miui_diff_boot.txt
             #
             #while read line
             #do
-            #  cp kernel_ko/$line _modules_miui/_vendor_dlkm_modules/
-            ###done < ../../melt_hyperos_diff_dlkm.txt 
+            #  cp -f kernel_ko/$line _modules_miui/_vendor_dlkm_modules/
+            ###done < ../../melt_miui_diff_dlkm.txt 
 
             rm _modules_hyperos.7z
             rm _modules_miui.7z
