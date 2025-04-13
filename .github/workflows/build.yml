@@ -219,7 +219,7 @@ jobs:
           name: "Image-${{ steps.set-env-kernel-version.outputs.KERNEL_VERSION }}"
           path: android_build_kernel/out/android12-5.10/common/arch/arm64/boot/Image
       
-      - name: Package kerenl
+      - name: Package the kerenl
         run: |
           if [[ ${{ inputs.kernel_source }} == fork_melt ]]; then
             export PATH=$(realpath android_build_kernel/prebuilts-master/clang/host/linux-x86/clang-r416183b/bin):$PATH
@@ -234,18 +234,8 @@ jobs:
             cp _dtb.7z ../
             7z x _modules_hyperos.7z -o_modules_hyperos
             7z x _modules_miui.7z -o_modules_miui
-            ls _modules_hyperos/_vendor_boot_modules > boot_hyperos.txt
-            ls _modules_hyperos/_vendor_dlkm_modules > dlkm_hyperos.txt
-            ls _modules_miui/_vendor_boot_modules > boot_miui.txt
-            ls _modules_miui/_vendor_dlkm_modules > dlkm_miui.txt
             mkdir kernel_ko
             find ../../android_build_kernel/out/android12-5.10/common -name "*.ko" -exec cp {} kernel_ko/ \;
-            ls kernel_ko > ko.txt
-            comm -12 boot_hyperos.txt ko.txt > ko_boot_hyperos.txt
-            comm -12 dlkm_hyperos.txt ko.txt > ko_dlkm_hyperos.txt
-            comm -12 boot_miui.txt ko.txt > ko_boot_miui.txt
-            comm -12 dlkm_miui.txt ko.txt > ko_dlkm_miui.txt
-
             for file in kernel_ko/*.ko; do
               llvm-objcopy --strip-debug "$file"
             done
@@ -253,22 +243,23 @@ jobs:
             while read line
             do
               cp kernel_ko/$line _modules_hyperos/_vendor_boot_modules/
-            done < ko_boot_hyperos.txt
+            done < ../../melt_hyperos_diff_boot.txt
 
             while read line
             do
-              cp kernel_ko/$line _modules_hyperos/_vendor_boot_modules/
-            done < ko_dlkm_hyperos.txt
+              cp kernel_ko/$line _modules_hyperos/_vendor_dlkm_modules/
+            done < ../../melt_hyperos_diff_dlkm.txt
 
-            while read line
-            do
-              cp kernel_ko/$line _modules_hyperos/_vendor_boot_modules/
-            done < ko_boot_miui.txt
-
-            while read line
-            do
-              cp kernel_ko/$line _modules_hyperos/_vendor_boot_modules/
-            done < ko_dlkm_miui.txt
+            ### TODO
+            #while read line
+            #do
+            #  cp kernel_ko/$line _modules_miui/_vendor_boot_modules/
+            #done < ../../melt_miui_diff_boot.txt
+            #
+            #while read line
+            #do
+            #  cp kernel_ko/$line _modules_miui/_vendor_dlkm_modules/
+            ###done < ../../melt_hyperos_diff_dlkm.txt 
 
             rm _modules_hyperos.7z
             rm _modules_miui.7z
