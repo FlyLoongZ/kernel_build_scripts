@@ -25,7 +25,7 @@ on:
           - none
           - official_release
           - official_dev
-          - mksu
+          - mksu_main
 
       susfs4ksu_patch:
         description: 'Add susfs4ksu patch'
@@ -129,13 +129,13 @@ jobs:
           cd android_build_kernel/common
           curl -LSs "https://raw.githubusercontent.com/tiann/KernelSU/main/kernel/setup.sh" | bash -s main
 
-      - name: Add the 5ec1cff KernelSU
+      - name: Add the 5ec1cff KernelSU main
         if: contains(inputs.ksu_patch, 'mksu')
         run: |
           cd android_build_kernel/common
           curl -LSs "https://raw.githubusercontent.com/5ec1cff/KernelSU/main/kernel/setup.sh" | bash -s main
 
-      - name: Add susfs4ksu patch
+      - name: Add the susfs4ksu patch
         if: ${{ inputs.susfs4ksu_patch }}
         env:
           ksu_patch_set: ${{ inputs.ksu_patch }}
@@ -264,7 +264,7 @@ jobs:
             for file in kernel_ko/*.ko; do
               llvm-objcopy --strip-all-gnu "$file"
             done
-
+            
             while read line
             do
               cp -f kernel_ko/$line _modules_hyperos/_vendor_boot_modules/
@@ -322,10 +322,14 @@ jobs:
         run: |
           if [[ ${{ env.ksu_patch }} != none ]]; then
             echo "KernelSU: ✔️ (${{ env.ksu_patch }})" >> release.txt
-            echo "KernelSU Version: $(cd android_build_kernel/common/KernelSU && expr 10200 + $(git rev-list --count HEAD))" >> release.txt
+            echo "- Version: $(cd android_build_kernel/common/KernelSU && expr 10200 + $(git rev-list --count HEAD))" >> release.txt
+            echo "- Branch: $(cd android_build_kernel/common/KernelSU && git branch --show-current)" >> release.txt
+            echo "- Commit: $(cd android_build_kernel/common/KernelSU && git rev-parse --short HEAD)" >> release.txt
             if [[ ${{ env.susfs4ksu_patch }} == true ]]; then
               echo "susfs4ksu: ✔️" >> release.txt
-              echo "susfs4ksu Version: $(cat android_build_kernel/common/include/linux/susfs.h | grep -E '^#define SUSFS_VERSION' | cut -d' ' -f3 | sed 's/"//g')" >> release.txt
+              echo "- Version: $(cat android_build_kernel/common/include/linux/susfs.h | grep -E '^#define SUSFS_VERSION' | cut -d' ' -f3 | sed 's/"//g')" >> release.txt
+              echo "- Branch: $(cd susfs4ksu && git branch --show-current)" >> release.txt
+              echo "- Commit: $(cd susfs4ksu && git rev-parse --short HEAD)" >> release.txt
             fi
           fi
 
@@ -334,9 +338,9 @@ jobs:
           fi
 
           echo "Kernel Version: ${{ steps.set-env-kernel-version.outputs.KERNEL_VERSION }}" >> release.txt
-          echo "Kernel Source: $(cd android_build_kernel/common && git remote -v | awk '/https/ {print $2; exit}')" >> release.txt
-          echo "Kernel Source Branch: $(cd android_build_kernel/common && git branch --show-current)" >> release.txt
-          echo "Kernel Source Commit: $(cd android_build_kernel/common && git rev-parse --short HEAD)" >> release.txt
+          echo "- Source: $(cd android_build_kernel/common && git remote -v | awk '/https/ {print $2; exit}')" >> release.txt
+          echo "  - Branch: $(cd android_build_kernel/common && git branch --show-current)" >> release.txt
+          echo "  - Commit: $(cd android_build_kernel/common && git rev-parse --short HEAD)" >> release.txt
       
       - name: Create github release
         uses: softprops/action-gh-release@v2
