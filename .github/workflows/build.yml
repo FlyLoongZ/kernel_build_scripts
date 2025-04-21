@@ -8,9 +8,9 @@ on:
         required: true
         type: choice
         options:
+          - fork_melt
           - gki_kernel@ztc1997
           - lineageos_xiaomi_sm8450
-          - fork_melt
 
       BUILD_NUMBER:
         description: 'ci.android.com build number'
@@ -130,7 +130,7 @@ jobs:
           curl -LSs "https://raw.githubusercontent.com/tiann/KernelSU/main/kernel/setup.sh" | bash -s main
 
       - name: Add the 5ec1cff KernelSU main
-        if: contains(inputs.ksu_patch, 'mksu')
+        if: contains(inputs.ksu_patch, 'mksu_main')
         run: |
           cd android_build_kernel/common
           curl -LSs "https://raw.githubusercontent.com/5ec1cff/KernelSU/main/kernel/setup.sh" | bash -s main
