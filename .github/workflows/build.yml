@@ -251,9 +251,6 @@ jobs:
               cp -f kernel_ko/$line _modules_hyperos/_vendor_dlkm_modules/
             done < ../../melt_hyperos_diff_dlkm.txt
 
-            cp -f kernel_ko/ir-spi.ko _modules_hyperos/_alt/OSS-ir-spi.ko
-            cp -f kernel_ko/msm_drm.ko _modules_hyperos/_alt/OSS-msm_drm.ko
-
             ### TODO
             #echo "=== Copy miui vendor boot modules ==="
             #while read line
