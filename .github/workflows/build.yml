@@ -142,7 +142,7 @@ jobs:
         run: |
           if [[ ${{ env.ksu_patch_set }} == none ]]; then
             echo "!!! KernelSU patch no enable !!!"
-          elif  [[ ${{ env.ksu_patch_set }} == mksu ]]; then
+          elif  [[ ${{ env.ksu_patch_set }} == mksu_main ]]; then
             git clone https://gitlab.com/simonpunk/susfs4ksu.git -b gki-android12-5.10
             echo "=== Copy susfs4ksu file ==="
             cp susfs4ksu/kernel_patches/KernelSU/10_enable_susfs_for_ksu.patch android_build_kernel/common/KernelSU/
@@ -167,14 +167,18 @@ jobs:
             patch -p1 < 50_add_susfs_in_gki-android12-5.10.patch
           else
             git clone https://gitlab.com/simonpunk/susfs4ksu.git -b gki-android12-5.10
+            echo "=== Copy susfs4ksu file ==="
             cp susfs4ksu/kernel_patches/KernelSU/10_enable_susfs_for_ksu.patch android_build_kernel/common/KernelSU/
             cp susfs4ksu/kernel_patches/50_add_susfs_in_gki-android12-5.10.patch android_build_kernel/common/
             cp susfs4ksu/kernel_patches/fs/* android_build_kernel/common/fs/
             cp susfs4ksu/kernel_patches/include/linux/* android_build_kernel/common/include/linux/
 
             cd android_build_kernel/common/KernelSU
+            echo "=== Start susfs4ksu patch ==="
+            echo "- Patch 10_enable_susfs_for_ksu.patch"
             patch -p1 < 10_enable_susfs_for_ksu.patch
             cd ..
+            echo "- Patch 50_add_susfs_in_gki-android12-5.10.patch"
             patch -p1 < 50_add_susfs_in_gki-android12-5.10.patch
           fi
 
