@@ -1,4 +1,0 @@
-qcom_wdt_core.ko
-qti_battery_charger_main.ko
-rtc-pm8xxx.ko
-sched-walt.ko

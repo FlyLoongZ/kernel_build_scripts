@@ -8,7 +8,6 @@ on:
         required: true
         type: choice
         options:
-          - fork_melt
           - gki_kernel@ztc1997
           - lineageos_xiaomi_sm8450
 
@@ -64,22 +63,16 @@ jobs:
       
       - name: Clone build tool
         run: |
-          if [[ ${{ inputs.kernel_source }} == fork_melt ]]; then
-            mkdir android_build_kernel
-            cd android_build_kernel
-          else
-            mkdir -p ~/.bin
-            PATH="${HOME}/.bin:${PATH}"
-            curl https://storage.googleapis.com/git-repo-downloads/repo > ~/.bin/repo
-            chmod a+rx ~/.bin/repo
-
-            mkdir android_build_kernel
-            cd android_build_kernel
-            git config --global user.email build-user@build-host
-            git config --global user.name build-user
-            ~/.bin/repo init -q -u https://github.com/FlyLoongZ/kernel_build_scripts -b repo_manifest
-            ~/.bin/repo sync
-          fi
+          mkdir -p ~/.bin
+          PATH="${HOME}/.bin:${PATH}"
+          curl https://storage.googleapis.com/git-repo-downloads/repo > ~/.bin/repo
+          chmod a+rx ~/.bin/repo
+          mkdir android_build_kernel
+          cd android_build_kernel
+          git config --global user.email build-user@build-host
+          git config --global user.name build-user
+          ~/.bin/repo init -q -u https://github.com/FlyLoongZ/kernel_build_scripts -b repo_manifest
+          ~/.bin/repo sync
 
           echo "=== Clone android llvm ==="
           mkdir -p prebuilts-master/clang/host/linux-x86
@@ -107,11 +100,6 @@ jobs:
             mv ../0001-lineageos_xiaomi_sm8450-build-fix.patch common/
             cd common
             git am 0001-lineageos_xiaomi_sm8450-build-fix.patch
-          elif [[ ${{ inputs.kernel_source }} == fork_melt ]]; then
-            echo "=== Choose fork_melt source ==="
-            git clone --depth=1 https://github.com/FlyLoongZ/android_kernel_xiaomi_marble.git common
-          else
-            exit 1
           fi
 
       - name: Add the official KernelSU release
@@ -176,21 +164,7 @@ jobs:
           git config --global user.name build-user
           cd ..
 
-          if [[ ${{ inputs.kernel_source }} == fork_melt ]]; then
-            cd common
-            if [[ ${{ env.ccache_set }} == true ]]; then
-              export PATH=$(realpath ../.bin):$(realpath ../prebuilts-master/clang/host/linux-x86/clang-r416183b/bin):$PATH
-              clang -v
-            else
-              export PATH=$(realpath ../prebuilts-master/clang/host/linux-x86/clang-r416183b/bin):$PATH
-              clang -v
-            fi
-            make ARCH=arm64 LLVM=1 LLVM_IAS=1 BRANCH=android12-5.10 KMI_GENERATION=9 BUILD_NUMBER=${{ inputs.BUILD_NUMBER }} O=../out/android12-5.10/common mrproper
-            make ARCH=arm64 LLVM=1 LLVM_IAS=1 BRANCH=android12-5.10 KMI_GENERATION=9 BUILD_NUMBER=${{ inputs.BUILD_NUMBER }} O=../out/android12-5.10/common marble_defconfig
-            make ARCH=arm64 LLVM=1 LLVM_IAS=1 BRANCH=android12-5.10 KMI_GENERATION=9 BUILD_NUMBER=${{ inputs.BUILD_NUMBER }} O=../out/android12-5.10/common -j$(nproc --all)
-          else
-            LTO=thin BUILD_CONFIG=common/build.config.gki.aarch64 BUILD_NUMBER=${{ inputs.BUILD_NUMBER }} build/build.sh -j4
-          fi
+          LTO=thin BUILD_CONFIG=common/build.config.gki.aarch64 BUILD_NUMBER=${{ inputs.BUILD_NUMBER }} build/build.sh -j4
 
       - name: Add Apatch
         if: ${{ inputs.ap_patch }}
@@ -218,76 +192,10 @@ jobs:
       
       - name: Package the kerenl
         run: |
-          if [[ ${{ inputs.kernel_source }} == fork_melt ]]; then
-            export PATH=$(realpath android_build_kernel/prebuilts-master/clang/host/linux-x86/clang-r416183b/bin):$PATH
-            git clone --depth=1 https://github.com/FlyLoongZ/AnyKernel3 -b Marble-Melt
-            cp android_build_kernel/out/android12-5.10/common/arch/arm64/boot/Image AnyKernel3/Image
-            cd AnyKernel3
-
-            mkdir tmp_down
-            cd tmp_down
-            wget -q https://github.com/Pzqqt/android_kernel_xiaomi_marble/releases/latest/download/$(git ls-remote --sort=-version:refname --tags https://github.com/Pzqqt/android_kernel_xiaomi_marble Melt-marble-v\* | head -n 1 | awk -F'/' '{print $NF}')-multi.zip
-            unzip Melt-marble-v*-multi.zip
-            cp _dtb.7z ../
-            7z x _modules_hyperos.7z -o_modules_hyperos
-            7z x _modules_miui.7z -o_modules_miui
-            mkdir kernel_ko
-            find ../../android_build_kernel/out/android12-5.10/common -name "*.ko" -exec cp {} kernel_ko/ \;
-            mv kernel_ko/qti_battery_charger.ko kernel_ko/qti_battery_charger_main.ko
-            mv kernel_ko/qca6490.ko kernel_ko/qca_cld3_qca6490.ko
-            for file in kernel_ko/*.ko; do
-              llvm-objcopy --strip-all-gnu "$file"
-            done
-            
-            echo "=== Copy hyperos vendor boot modules ==="
-            while read line
-            do
-              cp -f kernel_ko/$line _modules_hyperos/_vendor_boot_modules/
-            done < ../../melt_hyperos_diff_boot.txt
-
-            echo "=== Copy hyperos vendor dlkm modules ==="
-            while read line
-            do
-              cp -f kernel_ko/$line _modules_hyperos/_vendor_dlkm_modules/
-            done < ../../melt_hyperos_diff_dlkm.txt
-
-            ### TODO
-            #echo "=== Copy miui vendor boot modules ==="
-            #while read line
-            #do
-            #  cp -f kernel_ko/$line _modules_miui/_vendor_boot_modules/
-            #done < ../../melt_miui_diff_boot.txt
-            #
-            #echo "=== Copy miui vendor dlkm modules ==="
-            #while read line
-            #do
-            #  cp -f kernel_ko/$line _modules_miui/_vendor_dlkm_modules/
-            ###done < ../../melt_miui_diff_dlkm.txt 
-
-            rm _modules_hyperos.7z
-            rm _modules_miui.7z
-            cd _modules_hyperos
-            7z a _modules_hyperos.7z ./*
-            mv _modules_hyperos.7z ../../_modules_hyperos.7z
-            cd ../_modules_miui
-            7z a _modules_miui.7z ./*
-            mv _modules_miui.7z ../../_modules_miui.7z
-            cd ../../
-
-            zip -r9 "Anykernel3-${{ steps.set-env-kernel-version.outputs.KERNEL_VERSION }}.zip" * -x .git README.md 'tmp_down/*' '*.py'
-          else
-            git clone --depth=1 https://github.com/FlyLoongZ/AnyKernel3
-            cp android_build_kernel/out/android12-5.10/common/arch/arm64/boot/Image AnyKernel3/Image
-            cd AnyKernel3
-            zip -r9 "Anykernel3-${{ steps.set-env-kernel-version.outputs.KERNEL_VERSION }}.zip" * -x .git README.md
-          fi
-
-      - name: Upload melt build modules
-        if: contains(inputs.kernel_source, 'fork_melt')
-        uses: actions/upload-artifact@v4 
-        with:
-          name: "melt-build-modules-${{ steps.set-env-kernel-version.outputs.KERNEL_VERSION }}"
-          path: Anykernel3/tmp_down/kernel_ko/
+          git clone --depth=1 https://github.com/FlyLoongZ/AnyKernel3
+          cp android_build_kernel/out/android12-5.10/common/arch/arm64/boot/Image AnyKernel3/Image
+          cd AnyKernel3
+          zip -r9 "Anykernel3-${{ steps.set-env-kernel-version.outputs.KERNEL_VERSION }}.zip" * -x .git README.md
 
       - name: Create release text
         env: 
