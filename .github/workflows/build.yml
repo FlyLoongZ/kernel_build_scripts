@@ -8,7 +8,6 @@ on:
         required: true
         type: choice
         options:
-          - gki_kernel@ztc1997
           - lineageos_xiaomi_sm8450
 
       BUILD_NUMBER:
@@ -88,12 +87,6 @@ jobs:
       - name: Clone Kernel source
         run: |
           cd android_build_kernel
-          if [[ ${{ inputs.kernel_source }} == gki_kernel@ztc1997 ]]; then
-            echo "=== Choose gki_kernel@ztc1997 source ==="
-            git clone --depth=1 https://github.com/ztc1997/android_gki_kernel_5.10_common.git common
-            mv ../0001-ztc1997-build-fix.patch common/
-            cd common
-            git am 0001-ztc1997-build-fix.patch
           elif [[ ${{ inputs.kernel_source }} == lineageos_xiaomi_sm8450 ]]; then
             echo "=== Choose lineageos_xiaomi_sm8450 source ==="
             git clone --depth=1 https://github.com/cupid-development/android_kernel_xiaomi_sm8450.git common
