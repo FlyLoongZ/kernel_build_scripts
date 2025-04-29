@@ -78,13 +78,8 @@ jobs:
           echo "=== Clone android llvm ==="
           mkdir -p prebuilts-master/clang/host/linux-x86
           cd prebuilts-master/clang/host/linux-x86
-          if [[ ${{ inputs.kernel_source }} == lineageos_xiaomi_sm8450 ]]; then
-            echo "- Choose clang-r416183b1"
-            git clone https://github.com/crdroidandroid/android_prebuilts_clang_host_linux-x86_clang-r416183b1 clang-r416183b
-          else
-            echo "- Choose clang-r547379"
-            git clone https://gitlab.com/crdroidandroid/android_prebuilts_clang_host_linux-x86_clang-r547379 clang-r416183b
-          fi
+          echo "- Choose clang-r416183b1"
+          git clone https://github.com/crdroidandroid/android_prebuilts_clang_host_linux-x86_clang-r416183b1 clang-r416183b
 
       - name: Clone Kernel source
         run: |
@@ -209,17 +204,13 @@ jobs:
           zip -r9 "Anykernel3-${{ steps.set-env-kernel-version.outputs.KERNEL_VERSION }}.zip" * -x .git README.md
 
       - name: Create release text
-        env: 
-          ksu_patch: ${{ inputs.ksu_patch }}
-          ap_patch: ${{ inputs.ap_patch }}
-          susfs4ksu_patch: ${{ inputs.susfs4ksu_patch }}
         run: |
-          if [[ ${{ env.ksu_patch }} != none ]]; then
-            echo "KernelSU: ✔️ (${{ env.ksu_patch }})" >> release.txt
+          if [[ ${{ inputs.ksu_patch }} != none ]]; then
+            echo "KernelSU: ✔️ (${{ inputs.ksu_patch }})" >> release.txt
             echo "- Version: $(cd android_build_kernel/common/KernelSU && expr 10200 + $(git rev-list --count HEAD))" >> release.txt
             echo "- Commit: $(cd android_build_kernel/common/KernelSU && git rev-parse --short HEAD)" >> release.txt
             echo -e "\n" >> release.txt
-            if [[ ${{ env.susfs4ksu_patch }} == true ]]; then
+            if [[ ${{ inputs.susfs4ksu_patch }} == true ]]; then
               echo "susfs4ksu: ✔️" >> release.txt
               echo "- Version: $(cat android_build_kernel/common/include/linux/susfs.h | grep -E '^#define SUSFS_VERSION' | cut -d' ' -f3 | sed 's/"//g')" >> release.txt
               echo "- Branch: $(cd susfs4ksu && git branch --show-current)" >> release.txt
@@ -228,13 +219,13 @@ jobs:
             fi
           fi
 
-          if [[ ${{ env.ap_patch }} == true ]]; then
+          if [[ ${{ inputs.ap_patch }} == true ]]; then
             echo "Apatch: ✔️" >> release.txt
             echo -e "\n" >> release.txt
           fi
 
           echo "Kernel Version: ${{ steps.set-env-kernel-version.outputs.KERNEL_VERSION }}" >> release.txt
-          echo "- Source: [${{ env.kernel_source }}]($(cd android_build_kernel/common && git remote -v | awk '/https/ {print $2; exit}'))" >> release.txt
+          echo "- Source: [${{ inputs.kernel_source }}]($(cd android_build_kernel/common && git remote -v | awk '/https/ {print $2; exit}'))" >> release.txt
           echo "  - Branch: $(cd android_build_kernel/common && git branch --show-current)" >> release.txt
           echo "  - Commit: $(cd android_build_kernel/common && git rev-parse --short HEAD)" >> release.txt
       
