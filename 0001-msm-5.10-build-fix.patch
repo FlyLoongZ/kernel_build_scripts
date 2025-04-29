@@ -1,0 +1,18 @@
+From 03f090e6cf7c399f2b4bda3fc1c494b67cafc570 Mon Sep 17 00:00:00 2001
+From: FlyLoongZ <60963681+FlyLoongZ@users.noreply.github.com>
+Date: Tue, 29 Apr 2025 23:09:35 +0800
+Subject: [PATCH] msm-5.10 build fix
+
+---
+ android/gki_aarch64_modules | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/android/gki_aarch64_modules b/android/gki_aarch64_modules
+index e69de29bb2d1..2a1b69f651b4 100644
+--- a/android/gki_aarch64_modules
++++ b/android/gki_aarch64_modules
+@@ -0,0 +1 @@
++drivers/soc/qcom/sync_fence/qcom_sync_file.ko
+-- 
+2.49.0
+
