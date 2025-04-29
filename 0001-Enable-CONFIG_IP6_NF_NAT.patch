@@ -1,0 +1,24 @@
+From 3c9d6435bd8c5eb15269c4a50689b49c865a5d6f Mon Sep 17 00:00:00 2001
+From: FlyLoongZ <60963681+FlyLoongZ@users.noreply.github.com>
+Date: Tue, 29 Apr 2025 21:26:46 +0800
+Subject: [PATCH] Enable CONFIG_IP6_NF_NAT
+
+---
+ arch/arm64/configs/gki_defconfig | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/arch/arm64/configs/gki_defconfig b/arch/arm64/configs/gki_defconfig
+index da8ab23b9ce5..57ba590fdf1b 100644
+--- a/arch/arm64/configs/gki_defconfig
++++ b/arch/arm64/configs/gki_defconfig
+@@ -225,6 +225,7 @@ CONFIG_IP6_NF_FILTER=y
+ CONFIG_IP6_NF_TARGET_REJECT=y
+ CONFIG_IP6_NF_MANGLE=y
+ CONFIG_IP6_NF_RAW=y
++CONFIG_IP6_NF_NAT=y
+ CONFIG_TIPC=y
+ CONFIG_L2TP=y
+ CONFIG_BRIDGE=y
+-- 
+2.49.0
+
