@@ -246,10 +246,15 @@ jobs:
             echo -e "\n" >> release.txt
           fi
 
+          if [[ ${{ inputs.ip6tables_nat }} == true ]]; then
+            echo "ip6tables nat: ✔️" >> release.txt
+            echo -e "\n" >> release.txt
+          fi
+
           echo "Kernel Version: ${{ steps.set-env-kernel-version.outputs.KERNEL_VERSION }}" >> release.txt
           echo "- Source: [${{ inputs.kernel_source }}]($(cd android_build_kernel/common && git remote -v | awk '/https/ {print $2; exit}'))" >> release.txt
-          echo "  - Branch: $(cd android_build_kernel/common && git branch --show-current)" >> release.txt
-          echo "  - Commit: $(cd android_build_kernel/common && git rev-parse --short HEAD)" >> release.txt
+          echo "- Branch: $(cd android_build_kernel/common && git branch --show-current)" >> release.txt
+          echo "- Commit: $(cd android_build_kernel/common && git rev-parse --short HEAD)" >> release.txt
       
       - name: Create github release
         uses: softprops/action-gh-release@v2
