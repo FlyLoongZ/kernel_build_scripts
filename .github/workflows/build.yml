@@ -32,11 +32,6 @@ on:
         required: false
         type: boolean
 
-      ap_patch:
-        description: 'Add Apatch release patch'
-        required: false
-        type: boolean
-
       ccache_set:
         description: 'Enable Ccache'
         required: false
@@ -209,20 +204,6 @@ jobs:
 
           LTO=thin BUILD_CONFIG=common/build.config.gki.aarch64 BUILD_NUMBER=${{ inputs.BUILD_NUMBER }} build/build.sh -j4
 
-      - name: Add Apatch
-        if: ${{ inputs.ap_patch }}
-        env:
-          ap_key: ${{ secrets.Apatch_Key }}
-        run: |
-          cd android_build_kernel/out/android12-5.10/common/arch/arm64/boot
-          mkdir apatch
-          cd apatch
-          wget -q https://github.com/bmax121/KernelPatch/releases/latest/download/kptools-linux
-          wget -q https://github.com/bmax121/KernelPatch/releases/latest/download/kpimg-android
-          mv ../Image ../Image-old
-          chmod +x kptools-linux
-          ./kptools-linux -p --image ../Image-old --skey "$ap_key" --kpimg kpimg-android --out ../Image
-          
       - name: Read Kernel version
         id: set-env-kernel-version
         run: echo "KERNEL_VERSION=$(awk -F'"' '{print $2}' android_build_kernel/out/android12-5.10/common/include/generated/utsrelease.h)" >> $GITHUB_OUTPUT
@@ -254,11 +235,6 @@ jobs:
               echo "- Commit: $(cd susfs4ksu && git rev-parse --short HEAD)" >> release.txt
               echo -e "\n" >> release.txt
             fi
-          fi
-
-          if [[ ${{ inputs.ap_patch }} == true ]]; then
-            echo "Apatch: ✔️" >> release.txt
-            echo -e "\n" >> release.txt
           fi
 
           echo "Kernel Version: ${{ steps.set-env-kernel-version.outputs.KERNEL_VERSION }}" >> release.txt
