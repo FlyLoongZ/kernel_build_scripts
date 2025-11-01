@@ -127,7 +127,11 @@ jobs:
         if: contains(inputs.ksu_patch, 'sukisu_ultra')
         run: |
           cd android_build_kernel/common
-          curl -LSs "https://raw.githubusercontent.com/SukiSU-Ultra/SukiSU-Ultra/main/kernel/setup.sh" | bash -s susfs-main
+          if [[ ${{ inputs.susfs4ksu_patch }} == true ]]; then
+            curl -LSs "https://raw.githubusercontent.com/SukiSU-Ultra/SukiSU-Ultra/main/kernel/setup.sh" | bash -s susfs-main
+          else
+            curl -LSs "https://raw.githubusercontent.com/SukiSU-Ultra/SukiSU-Ultra/main/kernel/setup.sh" | bash -s main
+          fi
           echo "KernelSU_version=$(expr 10700 + $(git rev-list --count HEAD))"  >> "$GITHUB_ENV"
 
       - name: Add the susfs4ksu patch
