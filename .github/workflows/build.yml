@@ -137,7 +137,7 @@ jobs:
         run: |
           if [[ ${{ env.ksu_patch_set }} == none ]]; then
             echo "!!! KernelSU patch no enable !!!"
-          elif [[ ${{ env.ksu_patch_set }} != sukisu_ultra ]]; then
+          elif [[ ${{ env.ksu_patch_set }} == sukisu_ultra ]]; then
             git clone https://gitlab.com/simonpunk/susfs4ksu.git -b gki-android12-5.10
             git clone https://github.com/SukiSU-Ultra/SukiSU_patch.git
             echo "=== Copy susfs4ksu file ==="
