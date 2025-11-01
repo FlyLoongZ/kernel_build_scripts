@@ -90,22 +90,22 @@ jobs:
             git clone --depth=1 https://android.googlesource.com/kernel/common -b android12-5.10-2025-02 common
             mv ../0001-Modify-kernel-version-logic.patch common/
             cd common
-            git am 0001-Modify-kernel-version-logic.patch
+            patch -p1 < 0001-Modify-kernel-version-logic.patch
           elif [[ ${{ inputs.kernel_source }} == msm-5.10 ]]; then
             echo "=== Choose msm-5.10 ==="
             git clone --depth=1 https://pages.codelinaro.org/clo/la/kernel/msm-5.10 -b kernel.lnx.5.10.r1-rel common
             mv ../0001-Modify-kernel-version-logic.patch common/
             mv ../0001-msm-5.10-build-fix.patch common/
             cd common
-            git am 0001-Modify-kernel-version-logic.patch
-            git am 0001-msm-5.10-build-fix.patch
+            patch -p1 < 0001-Modify-kernel-version-logic.patch
+            patch -p1 < 0001-msm-5.10-build-fix.patch
           elif [[ ${{ inputs.kernel_source }} == lineageos_xiaomi_sm8450 ]]; then
             echo "=== Choose lineageos_xiaomi_sm8450 source ==="
             git clone --depth=1 https://github.com/cupid-development/android_kernel_xiaomi_sm8450.git common
             mv ../0001-lineageos_xiaomi_sm8450-build-fix.patch common/
             cd common
             cd common
-            git am 0001-lineageos_xiaomi_sm8450-build-fix.patch
+            patch -p1 < 0001-lineageos_xiaomi_sm8450-build-fix.patch
           fi
 
       - name: Add the official KernelSU release
