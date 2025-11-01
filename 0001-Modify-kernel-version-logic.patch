@@ -1,23 +1,23 @@
-From daad6459721cb1b3155bd819ba7eac2963256153 Mon Sep 17 00:00:00 2001
-From: FlyLoongZ <60963681+FlyLoongZ@users.noreply.github.com>
-Date: Sat, 12 Apr 2025 14:43:59 +0800
-Subject: [PATCH] Modify kernel version logic
-
----
- scripts/setlocalversion | 22 +++++++++++-----------
- 1 file changed, 11 insertions(+), 11 deletions(-)
-
 diff --git a/scripts/setlocalversion b/scripts/setlocalversion
-index 842936656b846..b0edce2722add 100755
+index 842936656b84..fc082f5e1a49 100755
 --- a/scripts/setlocalversion
 +++ b/scripts/setlocalversion
-@@ -91,15 +91,15 @@ scm_version()
+@@ -72,7 +72,7 @@ scm_version()
+ 
+ 		# If we are at a tagged commit (like "v2.6.30-rc6"), we ignore
+ 		# it, because this version is defined in the top level Makefile.
+-		if [ -z "$(git describe --exact-match 2>/dev/null)" ]; then
++		##if [ -z "$(git describe --exact-match 2>/dev/null)" ]; then
+ 
+ 			# If only the short version is requested, don't bother
+ 			# running further git commands
+@@ -91,16 +91,16 @@ scm_version()
  			# --abbrev=12 ensures a minimum of 12, and the
  			# awk substr() then picks the 'g' and first 12
  			# hex chars.
 -			if atag="$(git describe --abbrev=12 2>/dev/null)"; then
 -				echo "$atag" | awk -F- '{printf("-%05d-%s", $(NF-1),substr($(NF),0,13))}'
-+			#####if atag="$(git describe --abbrev=12 2>/dev/null)"; then
++			##if atag="$(git describe --abbrev=12 2>/dev/null)"; then
 +			##	echo "$atag" | awk -F- '{printf("-%05d-%s", $(NF-1),substr($(NF),0,13))}'
  
  			# If we don't have a tag at all we print -g{commitish},
@@ -27,11 +27,13 @@ index 842936656b846..b0edce2722add 100755
  				head="$(echo $head | cut -c1-12)"
 -				printf '%s%s' -g $head
 -			fi
+-		fi
 +				printf '%s%05d%s%s' - $(( ( $(od -An -N1 -tu1 < /dev/urandom) % 113 ) + 16 )) -g $head
-+			#####fi
- 		fi
++			##fi
++		##fi
  
  		# Is this git on svn?
+ 		if git config --get svn-remote.svn.url >/dev/null; then
 @@ -113,12 +113,12 @@ scm_version()
  		# it fails. Note that git-diff-index does not refresh the
  		# index, so it may give misleading results. See
@@ -51,5 +53,3 @@ index 842936656b846..b0edce2722add 100755
  
  		# All done with git
  		return
--- 
-2.49.0

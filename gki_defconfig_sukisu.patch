@@ -1,0 +1,13 @@
+diff --git a/arch/arm64/configs/gki_defconfig b/arch/arm64/configs/gki_defconfig
+index 912049431f4a..eb926715d44a 100644
+--- a/arch/arm64/configs/gki_defconfig
++++ b/arch/arm64/configs/gki_defconfig
+@@ -564,6 +564,8 @@ CONFIG_ANDROID_VENDOR_HOOKS=y
+ CONFIG_LIBNVDIMM=y
+ # CONFIG_ND_BLK is not set
+ CONFIG_INTERCONNECT=y
++CONFIG_KSU_MANUAL_HOOK=y
++# CONFIG_KSU_SUSFS_SUS_SU is not set
+ CONFIG_EXT4_FS=y
+ CONFIG_EXT4_FS_POSIX_ACL=y
+ CONFIG_EXT4_FS_SECURITY=y
