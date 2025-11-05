@@ -127,7 +127,7 @@ jobs:
           else
             curl -LSs "https://raw.githubusercontent.com/SukiSU-Ultra/SukiSU-Ultra/main/kernel/setup.sh" | bash -s main
           fi
-          echo "KernelSU_version=$(expr 10700 + $(git rev-list --count HEAD))"  >> "$GITHUB_ENV"
+          echo "KernelSU_version=$(expr 10700 + $(git rev-list --count main))"  >> "$GITHUB_ENV"
 
       - name: Add the susfs4ksu patch
         if: ${{ inputs.susfs4ksu_patch }}
@@ -227,13 +227,11 @@ jobs:
             echo "KernelSU: ✔️ (${{ inputs.ksu_patch }})" >> release.txt
             echo "- Version: $(cd android_build_kernel/common/KernelSU && expr 10200 + $(git rev-list --count HEAD))" >> release.txt
             echo "- Commit: $(cd android_build_kernel/common/KernelSU && git rev-parse --short HEAD)" >> release.txt
-            echo -e "\n" >> release.txt
             if [[ ${{ inputs.susfs4ksu_patch }} == true ]]; then
               echo "susfs4ksu: ✔️" >> release.txt
               echo "- Version: $(cat android_build_kernel/common/include/linux/susfs.h | grep -E '^#define SUSFS_VERSION' | cut -d' ' -f3 | sed 's/"//g')" >> release.txt
               echo "- Branch: $(cd susfs4ksu && git branch --show-current)" >> release.txt
               echo "- Commit: $(cd susfs4ksu && git rev-parse --short HEAD)" >> release.txt
-              echo -e "\n" >> release.txt
             fi
           fi
 
