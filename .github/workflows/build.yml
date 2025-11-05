@@ -146,7 +146,7 @@ jobs:
 
             echo "=== Copy SukiSU_patch file ==="
             cp SukiSU_patch/69_hide_stuff.patch android_build_kernel/common/
-            cp SukiSU_patch/hooks/syscall_hooks.patch android_build_kernel/common/
+            cp SukiSU_patch/hooks/scope_min_manual_hooks_v1.6.patch android_build_kernel/common/
             cp gki_defconfig_sukisu.patch android_build_kernel/common/
 
             echo "=== Start susfs4ksu patch ==="
@@ -157,8 +157,8 @@ jobs:
             echo "=== Start SukiSU_patch patch ==="
             echo "- Patch 69_hide_stuff.patch"
             patch -p1 < 69_hide_stuff.patch
-            echo "- Patch syscall_hooks.patch"
-            patch -p1 < syscall_hooks.patch
+            echo "- Patch scope_min_manual_hooks_v1.6.patch"
+            patch -p1 < scope_min_manual_hooks_v1.6.patch
             echo "- Patch gki_defconfig_sukisu.patch"
             patch -p1 < gki_defconfig_sukisu.patch
           else
