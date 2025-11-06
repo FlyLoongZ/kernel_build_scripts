@@ -225,14 +225,15 @@ jobs:
         run: |
           if [[ ${{ inputs.ksu_patch }} != none ]]; then
             echo "KernelSU: ✔️ (${{ inputs.ksu_patch }})" >> release.txt
-            echo "- Version: $(cd android_build_kernel/common/KernelSU && expr 10200 + $(git rev-list --count HEAD))" >> release.txt
-            echo "- Commit: $(cd android_build_kernel/common/KernelSU && echo "$(git remote get-url origin | sed 's/\.git$//')/commit/$(git rev-parse --short HEAD)")" >> release.txt
+            echo "- Version: "$KernelSU_version >> release.txt
+            echo "- Branch: $(cd android_build_kernel/common/KernelSU && git branch --show-current)" >> release.txt
+            echo "- Commit: [$(cd android_build_kernel/common/KernelSU && git rev-parse --short HEAD)]($(cd android_build_kernel/common/KernelSU && echo "$(git remote get-url origin | sed 's/\.git$//')/commit/$(git rev-parse --short HEAD)"))" >> release.txt
             echo >> release.txt
             if [[ ${{ inputs.susfs4ksu_patch }} == true ]]; then
               echo "susfs4ksu: ✔️" >> release.txt
               echo "- Version: $(cat android_build_kernel/common/include/linux/susfs.h | grep -E '^#define SUSFS_VERSION' | cut -d' ' -f3 | sed 's/"//g')" >> release.txt
               echo "- Branch: $(cd susfs4ksu && git branch --show-current)" >> release.txt
-              echo "- Commit: $(cd susfs4ksu && echo "$(git remote get-url origin | sed 's/\.git$//')/commit/$(git rev-parse --short HEAD)")" >> release.txt
+              echo "- Commit: [$(cd susfs4ksu && git rev-parse --short HEAD)]($(cd susfs4ksu && echo "$(git remote get-url origin | sed 's/\.git$//')/commit/$(git rev-parse --short HEAD)"))" >> release.txt
               echo >> release.txt
             fi
           fi
@@ -240,7 +241,7 @@ jobs:
           echo "Kernel Version: ${{ steps.set-env-kernel-version.outputs.KERNEL_VERSION }}" >> release.txt
           echo "- Source: [${{ inputs.kernel_source }}]($(cd android_build_kernel/common && git remote -v | awk '/https/ {print $2; exit}'))" >> release.txt
           echo "- Branch: $(cd android_build_kernel/common && git branch --show-current)" >> release.txt
-          echo "- Commit: $(cd android_build_kernel/common && echo "$(git remote get-url origin | sed 's/\.git$//')/commit/$(git rev-parse --short HEAD)")" >> release.txt
+          echo "- Commit: [$(cd android_build_kernel/common && git rev-parse --short HEAD)]($(cd android_build_kernel/common && echo "$(git remote get-url origin | sed 's/\.git$//')/commit/$(git rev-parse --short HEAD)"))" >> release.txt
       
       - name: Create github release
         uses: softprops/action-gh-release@v2
