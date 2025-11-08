@@ -127,7 +127,7 @@ jobs:
           else
             curl -LSs "https://raw.githubusercontent.com/SukiSU-Ultra/SukiSU-Ultra/main/kernel/setup.sh" | bash -s main
           fi
-          echo "KernelSU_version=$(expr 10700 + $(git rev-list --count main))"  >> "$GITHUB_ENV"
+          echo "KernelSU_version=$(expr 40000 + $(git rev-list --count - 2815))"  >> "$GITHUB_ENV"
 
       - name: Add the susfs4ksu patch
         if: ${{ inputs.susfs4ksu_patch }}
