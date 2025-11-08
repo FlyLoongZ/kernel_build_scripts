@@ -109,15 +109,14 @@ jobs:
         run: | 
           cd android_build_kernel/common
           curl -LSs "https://raw.githubusercontent.com/tiann/KernelSU/main/kernel/setup.sh" | bash -
-          cd KernelSU
-          echo "KernelSU_version=$(expr 10200 + $(git rev-list --count HEAD))"  >> "$GITHUB_ENV"
+          echo "KernelSU_version=$(cd KernelSU && expr 10200 + $(git rev-list --count HEAD))"  >> "$GITHUB_ENV"
 
       - name: Add the official KerenlSU dev
         if: contains(inputs.ksu_patch, 'official_dev')
         run: |
           cd android_build_kernel/common
           curl -LSs "https://raw.githubusercontent.com/tiann/KernelSU/main/kernel/setup.sh" | bash -s main
-          echo "KernelSU_version=$(expr 10200 + $(git rev-list --count HEAD))"  >> "$GITHUB_ENV"
+          echo "KernelSU_version=$(cd KernelSU && expr 10200 + $(git rev-list --count HEAD))"  >> "$GITHUB_ENV"
 
       - name: Add the SukiSU-Ultra
         if: contains(inputs.ksu_patch, 'sukisu_ultra')
@@ -128,7 +127,7 @@ jobs:
           else
             curl -LSs "https://raw.githubusercontent.com/SukiSU-Ultra/SukiSU-Ultra/main/kernel/setup.sh" | bash -s main
           fi
-          echo "KernelSU_version=$(expr 40000 + $(git rev-list --count main) - 2815)"  >> "$GITHUB_ENV"
+          echo "KernelSU_version=$(cd KernelSU && expr 40000 + $(git rev-list --count main) - 2815)"  >> "$GITHUB_ENV"
 
       - name: Add the susfs4ksu patch
         if: ${{ inputs.susfs4ksu_patch }}
