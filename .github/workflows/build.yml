@@ -144,7 +144,7 @@ jobs:
             cp susfs4ksu/kernel_patches/50_add_susfs_in_gki-android12-5.10.patch android_build_kernel/common/
             cp susfs4ksu/kernel_patches/fs/* android_build_kernel/common/fs/
             cp susfs4ksu/kernel_patches/include/linux/* android_build_kernel/common/include/linux/
-            cp gki_defconfig_susfs.patch android_build_kernel/common/
+            cp gki_defconfig_sukisu.patch android_build_kernel/common/
 
             echo "=== Copy SukiSU_patch file ==="
             cp SukiSU_patch/69_hide_stuff.patch android_build_kernel/common/
@@ -153,8 +153,8 @@ jobs:
             cd android_build_kernel/common
             echo "- Patch 50_add_susfs_in_gki-android12-5.10.patch"
             patch -p1 < 50_add_susfs_in_gki-android12-5.10.patch
-            echo "- Patch gki_defconfig_susfs.patch"
-            patch -p1 < gki_defconfig_susfs.patch
+            echo "- Patch gki_defconfig_sukisu.patch"
+            patch -p1 < gki_defconfig_sukisu.patch
 
             echo "=== Start SukiSU_patch patch ==="
             echo "- Patch 69_hide_stuff.patch"
