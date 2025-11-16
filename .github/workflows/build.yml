@@ -139,15 +139,11 @@ jobs:
             echo "!!! KernelSU patch no enable !!!"
           elif [[ ${{ env.ksu_patch_set }} == sukisu_ultra ]]; then
             git clone https://gitlab.com/simonpunk/susfs4ksu.git -b gki-android12-5.10
-            git clone https://github.com/SukiSU-Ultra/SukiSU_patch.git
             echo "=== Copy susfs4ksu file ==="
             cp susfs4ksu/kernel_patches/50_add_susfs_in_gki-android12-5.10.patch android_build_kernel/common/
             cp susfs4ksu/kernel_patches/fs/* android_build_kernel/common/fs/
             cp susfs4ksu/kernel_patches/include/linux/* android_build_kernel/common/include/linux/
             cp gki_defconfig_sukisu.patch android_build_kernel/common/
-
-            echo "=== Copy SukiSU_patch file ==="
-            cp SukiSU_patch/69_hide_stuff.patch android_build_kernel/common/
 
             echo "=== Start susfs4ksu patch ==="
             cd android_build_kernel/common
@@ -155,10 +151,6 @@ jobs:
             patch -p1 < 50_add_susfs_in_gki-android12-5.10.patch
             echo "- Patch gki_defconfig_sukisu.patch"
             patch -p1 < gki_defconfig_sukisu.patch
-
-            echo "=== Start SukiSU_patch patch ==="
-            echo "- Patch 69_hide_stuff.patch"
-            patch -p1 < 69_hide_stuff.patch
           else
             git clone https://gitlab.com/simonpunk/susfs4ksu.git -b gki-android12-5.10
             echo "=== Copy susfs4ksu file ==="
